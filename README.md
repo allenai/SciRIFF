@@ -1,8 +1,16 @@
 # SciRIFF
 
-This repository contains code for the preprint `SciRIFF: A Resource to Enhance Language Model Instruction-Following over Scientific Literature` TODO link to arXiv. SciRIFF is a collection of 54 tasks targeting instruction-following over scientific literature. Tasks were created by converting existing scientific datasets to a common instruction-following format via expert-written templates.
+This repository contains code for the preprint [SciRIFF: A Resource to Enhance Language Model Instruction-Following over Scientific Literature](https://arxiv.org/abs/2406.07835). SciRIFF is a collection of 54 tasks targeting instruction-following over scientific literature. Tasks were created by converting existing scientific datasets to a common instruction-following format via expert-written templates.
 
 The SciRIFF dataset, as well as the SciTulu models trained on SciRIFF, are available in the Hugging Face [SciRIFF collection](https://huggingface.co/collections/allenai/sciriff-665f61ba7315e1d202e5f6bf). This repository contains code to evaluate the SciTulu models on 9 held-out SciRIFF tasks, as well as details explaining how to use the data to train new models. Shortly, we will add templates for all tasks, as well as code to recreate the dataset using these templates.
+
+**Table of Contents**
+
+- [Setup](#setup)
+- [Evaluation](#evaluation)
+- [Model training](#model-training)
+- [Recreating the dataset](#recreating-the-dataset)
+- [The SciRIFF collection](#the-sciriff-collection)
 
 ## Setup
 
@@ -38,13 +46,13 @@ export OPENAI_API_KEY=[your_openai_key]
 
 ## Evaluation
 
-To evaluate, we first use the Eleuther harness to handle inference, and then run evluations on the results. For implementation details, see [evaluation.md](doc/evaluation.md). For examples of each evaluation task, see [evaluation_tasks.md](doc/evaluatino_tasks.md)
+To evaluate, we first use the Eleuther harness to handle inference, and then run evluations on the results. For implementation details, see [evaluation.md](doc/evaluation.md). For examples of each evaluation task, see [evaluation_tasks.md](doc/evaluation_tasks.md)
 
 ### Making predictions
 
 Use `predict_eleuther.py` to make predictions for all eval tasks. The example below makes predictions using SciTulu-7B. The results will go in `results/predictions/scitulu-7b`.
 
-For the 7B, you should be fine using a single A6000 gpu. For the 70B, we've generally used 4 80GB A100's or similar, but it may be possible to do with less. Inference on the whole eval set will take a few hours; to run on a subset of eval instances, you can use the `--subset` flag.
+For the 7B, you should be fine using a single A6000 gpu. For the 70B, we've generally used 4 80GB A100's or similar, but it may be possible to do with less. Inference on the whole eval set will take a few hours; you can use the `--limit` flag to cap the number of instances per task.
 
 ```bash
 python script/eval/predict_eleuther.py \
@@ -123,3 +131,12 @@ You can also use the open-instruct code to run evals on general instruction-foll
 ## Recreating the dataset
 
 We will provide templates and scripts shortly to recreate the dataset.
+
+## The SciRIFF collection
+
+The [SciRIFF](https://huggingface.co/collections/allenai/sciriff-665f61ba7315e1d202e5f6bf) collection on Hugging Face consists of the following:
+
+- [SciRIFF](https://huggingface.co/datasets/allenai/SciRIFF): The full SciRIFF dataset as described in our [preprint](https://arxiv.org/abs/2406.07835).
+- [SciRIFF-train-mix](https://huggingface.co/datasets/allenai/SciRIFF-train-mix) The training mix used to train our SciTulu models; also described in the [preprint](https://arxiv.org/abs/2406.07835).
+- [SciTulu 7B](https://huggingface.co/allenai/scitulu-7b): Checkpoint for the SciTulu 7B model.
+- [SciTulu 70B](https://huggingface.co/allenai/scitulu-70b): Checkpoint for the SciTulu 70B model.
