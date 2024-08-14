@@ -1,0 +1,74 @@
+name: multicite_intent_classification
+dataset: kejian/MultiCite-classification-gold-context
+formatter:
+  name: multicite_intent_classification
+  args: null
+metadata:
+  task: classification
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: shi-kejian,dwadden
+templates:
+  0:
+    jinja: |
+      Your task is to classify the citation intent within the following provided text from a computational linguistics research paper. The cited work is demarcated by "<cite>" and "</cite>". Determine the purpose of the cited work by selecting from the listed categories:
+
+      - Background: The cited paper underpins the subject matter.
+      - Motivation: The cited paper inspires or provides a rationale for the current research.
+      - Uses: The current work utilizes concepts or tools from the cited paper.
+      - Extends: The current work advances ideas or methods from the cited paper.
+      - Similarities: The current work identifies commonalities with the cited paper.
+      - Differences: The current work delineates its distinction from the cited paper.
+      - FutureWork: The cited paper is acknowledged as groundwork for prospective research.
+
+      Indicate the intents by listing them in a `json` array, e.g. ["Background", "Uses"]. More than one intent may be applicable. Do not include any extraneous text in your response.
+
+      Context with Citation:
+      {{ input_transformed }}
+
+      |||
+
+      {{ output_transformed | tojson }}
+  1:
+    jinja: |
+      You are presented with the following excerpt from a computational linguistics paper, which contains a citation demarcated by "<cite>" and "</cite>" tags. Identify the intent(s) of this citation by selecting from the following categories:
+
+      - Background: Offers foundational or contextual knowledge from the cited paper.
+      - Motivation: The cited paper is the impetus or premise for the research at hand.
+      - Uses: Adopts ideas, methods, or tools from the cited paper in the current study.
+      - Extends: Enhances or broadens the scope of concepts from the cited paper.
+      - Similarities: Points out parallels with the research in the cited paper.
+      - Differences: Notes how the present research diverges from the cited paper.
+      - FutureWork: Suggests the cited paper's concepts for future exploration.
+
+      Your response should be a `json` array of identified intents, e.g. ["Differences", "FutureWork"]. Omit any other text from your answer.
+
+      Citation Context:
+      {{ input_transformed }}
+
+      |||
+
+      {{ output_transformed | tojson }}
+  2:
+    jinja: |
+      You have been provided with an excerpt from a research article on Natural Language Processing (NLP). A cited work is enclosed by "<cite>" and "</cite>". Please classify the citation's intent by choosing appropriate labels from the list below:
+
+      - Background: The cited work contributes background or domain-relevant information.
+      - Motivation: The cited work lays the groundwork or justification for the study.
+      - Uses: The study employs a concept, method, or tool from the cited work.
+      - Extends: The study expands upon the work cited.
+      - Similarities: The study acknowledges similarities to the cited work.
+      - Differences: The study specifies its differences from the cited work.
+      - FutureWork: The cited work is noted as an area for future research endeavors.
+
+      List the intents in a `json` array. Multiple labels may apply. Exclude any text that is not part of the listed intents.
+
+      Context with Citation:
+      {{ input_transformed }}
+
+      |||
+
+      {{ output_transformed | tojson }}

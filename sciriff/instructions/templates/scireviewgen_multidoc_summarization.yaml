@@ -1,0 +1,41 @@
+name: scireviewgen_multidoc_summarization
+dataset: kejian/SciReviewGen
+formatter:
+  name: scireviewgen_summ
+  args: null
+metadata:
+  task: summarization
+  domains:
+  - artificial_intelligence
+  source_type: multiple_source
+  input_context: multiple_paragraphs
+  output_context: paragraph
+  contributor: shi-kejian
+templates:
+  0:
+    jinja: |
+      You are presented with multiple paper abstracts, alongside the associated literature review and chapter titles. Given the provided information, you are going to do a literature review. Please generate a coherent literature review that synthesizes the content, draws connections between different works, highlights major findings, and identifies any gaps in the existing research.
+
+      {{ input_transformed }}
+
+      Literature Review:
+      |||
+      {{ target_transformed }}
+  1:
+    jinja: |
+      You have been provided with a set of paper abstracts, the related literature review title, and chapter titles. Your task is to craft a comprehensive literature review. This review should integrate the information, establish links between the papers, emphasize significant results, and point out research gaps.
+
+      {{ input_transformed}}
+
+      Literature Review:
+      |||
+      {{ target_transformed }}
+  2:
+    jinja: |
+      Presented below are abstracts from several research papers, with the titles of a literature review and its chapters. Using this information, produce an insightful literature review that integrates the given content, establishes ties between the studies, mentions main outcomes, and flags areas of research gaps.
+
+      {{ input_transformed }}
+
+      Literature Review:
+      |||
+      {{ target_transformed }}

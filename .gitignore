@@ -2,3 +2,7 @@
 **/.DS_Store/*
 **/results/*
 *.egg-info/**
+**/data/preprocessing/**
+**/data/instructions/**
+**/data/instructions_hf/**
+**/data/training_mix/**

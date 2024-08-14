@@ -1,0 +1,45 @@
+name: scientific_lay_summarisation_plos_single_doc_summ
+dataset: tomasg25/scientific_lay_summarisation
+subset: plos
+formatter:
+  name: scientific_lay_summ
+  args: null
+metadata:
+  task: summarization
+  domains:
+  - biomedicine
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: paragraph
+  contributor: minyichen666
+templates:
+  0:
+    jinja: |
+      You will be presented with the abstract, introduction, and discussion section from a biomedical research article. Your task is to create a summary that a layperson can understand, capturing the essence of the research article. Keep essential scientific terms, but ensure that the language remains clear and the concepts are explained in an uncomplicated manner.
+
+      Title: {{metadata.title}}}
+      Article:
+      {{ input_transformed }}
+      |||
+
+      {{ summary }}
+  1:
+    jinja: |
+      The following text is a biomedical research article sectioned into different parts. Your task is to write a summary that is accessible and comprehensible to the general public, emphasizing the research's key points without using complicated language.
+
+      Title: {{metadata.title}}}
+      Article:
+      {{ input_transformed }}
+      |||
+
+      {{ summary }}
+  2:
+    jinja: |
+      Here is a biomedical research article. Craft a summary that conveys the critical insights of the research to a non-specialist audience. While it's acceptable to use scientific terms, you should aim to minimize complicated language and make the text as clear and straightforward as possible.
+
+      Title: {{metadata.title}}}
+      Article:
+      {{ input_transformed }}
+      |||
+
+      {{ summary }}

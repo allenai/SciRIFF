@@ -1,0 +1,92 @@
+name: acl_arc_intent_classification
+dataset: kejian/ACL-ARC
+formatter:
+  name: acl_arc
+  args: null
+metadata:
+  task: classification
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: label
+  contributor: shi-kejian
+templates:
+  0:
+    jinja: |
+      You will be presented with a citation segment from the section of an NLP research paper, as well as the context surrounding that citation. Classify the intent behind this citation by choosing from one of the following categories:
+      - Background: provides context or foundational information related to the topic.
+      - Extends: builds upon the cited work.
+      - Uses: applies the methods or findings of the cited work.
+      - Motivation: cites the work as inspiration or rationale for the research.
+      - CompareOrContrast: compares or contrasts the cited work with others.
+      - FutureWork: cites the work as a direction for future research.
+
+      Your answer should be a single word from the following list of options: ["Background", "Extends", "Uses", "Motivation", "CompareOrContrast", "FutureWork"]. Do not include any other text in your response.
+
+      Section Title:
+      {{ section }}
+
+      Context before the citation:
+      {{ context_before }}
+
+      Citation Sentence:
+      {{ citation_sentence }}
+
+      Context after the citation:
+      {{ context_after }}
+
+      |||
+      {{ label }}
+  1:
+    jinja: |
+      In this task, you're given a segment from an NLP research paper's section that includes a citation. Your objective is to classify the purpose of this citation from the context provided. Select the appropriate intent from the following options:
+      - Background: for context-setting or background information.
+      - Extends: to indicate building upon the work cited.
+      - Uses: to denote application of the work cited.
+      - Motivation: to show the work cited as a rationale for the current research.
+      - CompareOrContrast: for comparing or contrasting with the work cited.
+      - FutureWork: to point towards future research directions.
+
+      Respond with the intent category that most accurately reflects the citation's role. Only one of these terms should be your answer: ["Background", "Extends", "Uses", "Motivation", "CompareOrContrast", "FutureWork"]. Please provide your response without additional texs.
+
+      Section Title:
+      {{ section }}
+
+      Context before the citation:
+      {{ context_before }}
+
+      Citation Sentence:
+      {{ citation_sentence }}
+
+      Context after the citation:
+      {{ context_after }}
+
+      |||
+      {{ label }}
+  2:
+    jinja: |
+      Your task involves examining a citation within the text of a section from an NLP paper and the surrounding textual context. Determine which of the following category best represents the citation's intent:
+      - Background: imparts foundational knowledge or context.
+      - Extends: enhances or adds to the cited work.
+      - Uses: employs the techniques or discoveries of the cited work.
+      - Motivation: draws upon the cited work to justify the current study.
+      - CompareOrContrast: sets the cited work against other studies for comparison.
+      - FutureWork: mentions the cited work in relation to prospective research endeavors.
+
+      Choose and provide only one category from the list: ["Background", "Extends", "Uses", "Motivation", "CompareOrContrast", "FutureWork"] as your answer, and do not output any extraneous information.
+
+      Section Title:
+      {{ section }}
+
+      Context before the citation:
+      {{ context_before }}
+
+      Citation Sentence:
+      {{ citation_sentence }}
+
+      Context after the citation:
+      {{ context_after }}
+
+      |||
+      {{ label }}

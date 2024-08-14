@@ -1,0 +1,52 @@
+name: covidfact_entailment
+dataset: dwadden/covidfact_entailment
+subset: null
+formatter:
+  name: science_fact_checking
+  args: null
+metadata:
+  task: entailment
+  domains:
+  - biomedicine
+  - clinical_medicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown a claim related to the COVID-19 pandemic, and the abstract of a biomedical research paper. Each sentence from the abstract will be on a separate line. Your task is to return a JSON object with two fields:
+
+      - "verdict": The fact-checking verdict. If the information in the abstract supports the claim, write "SUPPORT". If the abstract contradicts the claim, write "CONTRADICT".
+      - "evidence": An array of sentences providing evidence for the verdict. Please copy all relevant sentences verbatim from the abstract.
+
+      For instance, if the model were given the claim "the COVID vaccine is safe for healthy adults", the output might be
+      {
+        "verdict": "SUPPORT",
+        "evidence": ["Our findings indicate that the risks of severe COVID vaccine side effects are low for healthy adults."]
+      }
+
+      Claim: {{ claim }}
+
+      Abstract:
+      {{ abstract_with_newlines }}
+
+      |||
+
+      {{ output_json_with_sentences }}
+  1:
+    jinja: |
+      You will be provided a claim about public health, and the abstract of a scientific paper. Each sentence in the abstract will be prefixed with a number enclosed in brackets, e.g. [0], [1], etc. Your task is to return a JSON object with two fields:
+
+      - "verdict": The fact-checking verdict. If the information in the abstract supports the claim, write "SUPPORT". If the abstract contradicts the claim, write "CONTRADICT".
+      - "evidence": An array of sentence ID's providing evidence for the verdict. For instance, if sentences 1 and 4 provide evidence, write [1, 4].
+
+      Claim: {{ claim }}
+
+      Abstract:
+      {{ abstract_with_ids }}
+
+      |||
+
+      {{ output_json_with_ids }}

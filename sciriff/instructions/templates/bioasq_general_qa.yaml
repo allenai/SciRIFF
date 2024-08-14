@@ -1,0 +1,46 @@
+name: bioasq_general_qa
+data_dir: bioasq_task11b_summary_qa
+metadata:
+  task: qa.abstractive
+  domains:
+  - biomedicine
+  source_type: multiple_source
+  input_context: multiple_paragraphs
+  output_context: sentence
+  contributor: shruti-singh
+templates:
+  0:
+    jinja: |
+      You will be shown a question, followed by excerpts from biomedical research papers. Please answer the question based on the provided context. Do not include any text in your response other than the answer.
+
+      Question: {{ question }}
+
+      Context: {{ snippets }}
+
+      |||
+
+      {{ answer }}
+  1:
+    jinja: |
+      You will be provided with some biomedical context below and a question. The answer to the question is in the provided context. Use your best ability
+      to answer the question. Do not include any text in your response other than the answer.
+
+      Question: {{ question }}
+
+      Context: {{ snippets }}
+
+      |||
+
+      {{ answer }}
+  2:
+    jinja: |
+      Read the question and the following biomedical research paper excerpts. Your task is to answer
+      the question briefly based on the documents. Only respond with the answer and exclude any additional text.
+
+      Question: {{ question }}
+
+      Context: {{ snippets }}
+
+      |||
+
+      {{ answer }}

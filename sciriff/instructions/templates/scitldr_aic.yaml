@@ -1,0 +1,23 @@
+name: scitldr_aic
+dataset: allenai/scitldr
+subset: AIC
+metadata:
+  task: summarization
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: sentence
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      Below are the abstract, introduction, and conclusion of a computer science research paper. Please summarize the main contribution of the work in a single sentence. Your response should include the summary and no additional text.
+
+      Paper text:
+
+      {{ source | join("\n") }}
+
+      |||
+
+      {{ target[0] }}

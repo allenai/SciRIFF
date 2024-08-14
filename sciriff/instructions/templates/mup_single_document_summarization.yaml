@@ -1,0 +1,41 @@
+name: mup_single_document_summarization
+dataset: allenai/mup
+formatter:
+  name: mup
+  args: null
+metadata:
+  task: summarization
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: paragraph
+  contributor: minyichen666,shannonzshen,dwadden
+templates:
+  0:
+    jinja: |
+      You will be presented with the title and body text of a computer science research paper. Please write a summary of the work that would be informative for a peer reviewer assessing its quality. Your summary should be {{ summary_sentences }} sentences long. In your response, include only the summary and no additional text.
+
+      Paper title:
+      {{ paper_name }}
+
+      Paper body:
+      {{ text }}
+
+      {{ summary_sentences }}-sentence paper summary:
+      |||
+
+      {{ summary }}
+  1:
+    jinja: |
+      Below are the title and body of a computer science research paper. Please write a paragraph-length summary of this work. Your response should include only the summary, nothing else.
+
+      Title:
+      {{ paper_name }}
+
+      Body:
+      {{ text }}
+
+      |||
+
+      {{ summary }}

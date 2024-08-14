@@ -1,0 +1,39 @@
+name: drug_combo_extraction_re
+dataset: allenai/drug-combo-extraction
+formatter:
+  name: drug_combo_extraction
+  args: null
+metadata:
+  task: ie.relation_extraction
+  domains:
+  - clinical_medicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown a paragraph from a biomedical research article. Your task is to extract all drug combinations appearing in a specific sentence within in the paragraph. Each drug combination should be assigned to one of the following three categories:
+
+      - POS: Indicates a positive interaction between the drugs in the combination; for instance, drugs that have an additive or synergistic effect.
+      - NEG: Indicates a negative interaction between the drugs in the combination; for instance, combining these drugs might result in adverse side effects, or might reduce their efficacy.
+      - COMB: Indicates that the drugs are given in combination, but the type of interaction between the drugs cannot be determined based on the provided context.
+
+      Please format your answer as a json array. Each entry in the array should itself be an array formatted as [<drug_1>, <drug_2>, ..., <drug_n>, <category>] where <category> is one of the three categories listed above and <drug_1>, ..., <drug_n> are drug names copied verbatim from the input sentence. Different combinations may involve different numbers of drugs; in other words, the `n` in <drug_n> may vary.
+
+      As an example, the following output describes two extracted drug combinations; one between two drugs, and one between three drugs:
+
+      [["artesunate", "artemether", "COMB"], ["Nifedipine", "Labetalol", "Prazosin", "POS"]]
+
+      The paragraph and specific sentence are below. You should only extract relationships expressed in the specific sentence; the paragraph is provided for context.
+
+      In your output, return only the json array and no other text. If no drug combinations appear, return an empty array `[]`.
+
+      paragraph: {{ paragraph }}
+
+      sentence: {{ sentence }}
+
+      |||
+
+      {{ relations | tojson }}

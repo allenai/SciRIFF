@@ -1,0 +1,44 @@
+name: qasper_extractive_qa
+dataset: allenai/qasper
+formatter:
+  name: qasper
+  args:
+    question_type: extractive
+metadata:
+  task: qa.extractive
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: json
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown sections from a scientific research paper, together with a question about the paper. Your task is to answer the question based on the contents of the paper. Your response should be a `json` object with two fields:
+
+      "answer": An array of strings extracted directly from the paper which, collectively, answer the question.
+      "evidence": An array of strings. Each should be an excerpt from the paper, in which one or more of the extracted answers can be found.
+
+      For instance, for the question "What baselines did the authors compare against?", a sample response might be:
+
+      {
+        "answer": ["BERT", "RoBERTa"],
+        "evidence": ["In our experiments, we compare the performance of our model against BERT and RoBERTa."]
+      }
+
+      Do not include any text in your response other than the json.
+
+      If the question is unanswerable given the provided excerpts, respond with the single word "null".
+
+      Paper: {{paper}}
+
+      Question: {{question}}
+
+      |||
+
+      {% if unanswerable %}
+      null
+      {% else %}
+      {{ {"answer": answer, "evidence": evidence} | tojson }}
+      {% endif %}

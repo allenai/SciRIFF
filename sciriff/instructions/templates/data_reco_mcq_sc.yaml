@@ -1,0 +1,63 @@
+name: data_reco_mcq_sc
+dataset: shrutisingh/dataset_recommendation_mcq_sc
+formatter:
+  name: data_reco_mcq_sc
+  args:
+    num_sents_per_cand: 2
+metadata:
+  task: qa.multiple_choice
+  domains:
+  - artificial_intelligence
+  source_type: multiple_source
+  input_context: multiple_paragraphs
+  output_context: label
+  contributor: shruti-singh
+templates:
+  0:
+    jinja: |
+      Given a short query with keyphrases about a research idea in {{ year }} in the domain of artificial intelligence, recommend the relevant datasets to validate the research idea from options provided. A short description of the datasets is also provided to help you.
+
+      Query: {{ query }}
+
+      Keyphrases: {{ keyphrase_query }}
+
+      Dataset description:
+      {{ context }}
+
+      Options:- {{ options }}
+
+      |||
+
+      {{ answer }}
+  1:
+    jinja: |
+      Please use your expertise in machine learning datasets to answer which of the following dataset is relevant for the above query. Dataset choices are provided below alongwith a brief description of each dataset.
+
+      Query: {{ query }}
+
+      Keyphrases: {{ keyphrase_query }}
+
+      Dataset description:
+      {{ context }}
+
+      Choices:- {{ options }}
+
+      |||
+
+      {{ answer }}
+  2:
+    jinja: |
+      You are provided the above question and candidate options in an exam testing your knowledge of computer science datasets. You are provided with a question, candidate answers, and details about each candidate. Use your best judgement to suggest the best dataset for the question. Answer succinctly and precisely.
+
+      Question: {{ query }}
+
+      Keyphrases: {{ keyphrase_query }}
+
+      Details:
+      {{ context }}
+
+      Options:- {{ options }}
+
+      |||
+
+      {{ answer }}

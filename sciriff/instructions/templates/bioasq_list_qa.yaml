@@ -1,0 +1,25 @@
+name: bioasq_list_qa
+data_dir: bioasq_task11b_list_qa
+metadata:
+  task: qa.abstractive
+  domains:
+  - biomedicine
+  source_type: multiple_source
+  input_context: multiple_paragraphs
+  output_context: json
+  contributor: shruti-singh,davidw
+templates:
+  0:
+    jinja: |
+      Below are a collection of excerpts from biomedical research articles. Excerpts are separated by newlines. Your task is to answer a question based these excerpts. Your response should be formatted as a `json` array.
+
+      For instance, given excerpts from articles studying breast cancer, and the question "what are some common genes associated with breast cancer?", an answer might be formatted like: ["BRCA1", "BRCA2", "TP53", ...]. Only include answers that are mentioned in the provided exerpts. The array should always have at least one answer; do not respond with an empty array []. Do not include any text in your response other than the answer array.
+
+      Context: {{ snippets }}
+
+      Question:
+      {{ question }}
+
+      |||
+      {% set ans_list = correct_ans.split(", ") %}
+      {{ ans_list | tojson }}

@@ -1,0 +1,60 @@
+name: cdr_ner
+dataset: aakanksha19/cdr_bigbio_processed
+formatter:
+  name: bigbio_ner
+  args:
+    types_map: Chemical:Chemical,Disease:Disease
+metadata:
+  task: ie.named_entity_recognition
+  domains:
+  - biomedicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: aakanksha19
+templates:
+  0:
+    jinja: |
+      You will be shown an abstract from a biomedical research paper. Given this abstract, your task is to extract all unique entities of the following types: {{ ner_type_list | tojson }}.
+
+      Please return the output as a JSON object of the format: {"Chemical" : ["Naloxone", ...], "Disease" : ["Hypotensive", ...]}. The keys should be entity types and values should be lists of extracted entities belonging to the corresponding type. If you cannot find entities belonging to a specific type, the value should be [].
+
+      Only output the JSON object and do not include any additional text.
+
+      Abstract:
+
+      {{ abstract }}
+
+      |||
+
+      {{ ner_dict | tojson }}
+  1:
+    jinja: |
+      Given the following abstract from a biomedical research paper, identify and categorize all unique entities. Only choose entities from the following categories: {{ ner_type_list | tojson }}.
+
+      Your response should be a JSON object that looks like this: {"Chemical" : ["Naloxone", ...], "Disease" : ["Hypotensive", ...]}. The keys in the object should correspond to entity types and their values should be lists of extracted entities from that type. If you cannot find any entities for a specific type, output [].
+
+      Do not output anything aside from the JSON object.
+
+      Text Snippet:
+
+      {{ abstract }}
+
+      |||
+
+      {{ ner_dict | tojson }}
+  2:
+    jinja: |
+      In this task, you are given an abstract from a biomedical research paper as input, and your task is to locate all unique named entities within the given input. You should only select entities from the following types: {{ ner_type_list | tojson }}. Also provide the type for each entity.
+
+      Generate the output as a JSON object in this format: {"Chemical" : ["Naloxone", ...], "Disease" : ["Hypotensive", ...]}. Here, keys refer to entity types and values are lists of extracted entities from each type. If no named entities are identified for a specific type, return [].
+
+      Any output text aside from the JSON object will be considered invalid.
+
+      Input Text:
+
+      {{ abstract }}
+
+      |||
+
+      {{ ner_dict | tojson }}

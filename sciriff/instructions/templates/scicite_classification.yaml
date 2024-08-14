@@ -1,0 +1,66 @@
+name: scicite_classification
+dataset: allenai/scicite
+subset: null
+metadata:
+  task: classification
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: paragraph
+  output_context: label
+  contributor: yujieqiao
+templates:
+  0:
+    answer_choices: method ||| background ||| result
+    jinja: |
+      You will be presented with a citation segment from the section of a research paper. Classify the intent behind this citation by choosing from one of the following categories:
+
+      - Method: Cites the paper for its methodology or procedure.
+      - Background: Cites the paper to provide background information.
+      - Result: Cites the paper for its findings or results.
+
+      Your answer should be a single word from the following list of options: ["Method", "Background", "Result"]. Do not include any other text in your response.
+
+      Citation sentence:
+
+      {{ string }}
+
+      |||
+
+      {{ answer_choices[label].capitalize() }}
+  1:
+    answer_choices: method ||| background ||| result
+    jinja: |
+      Determine the intent of the following citation from a research paper. Select the most appropriate category:
+
+      - Method: The cited work is referenced for its methodological approach.
+      - Background: The cited work provides essential context or foundational knowledge.
+      - Result: The cited work is mentioned for its specific findings or outcomes.
+
+      Indicate your choice by providing a single word from these options: ["Method", "Background", "Result"], without adding any extra text.
+
+      Citation sentence:
+
+      {{ string }}
+
+      |||
+
+      {{ answer_choices[label].capitalize() }}
+  2:
+    answer_choices: method ||| background ||| result
+    jinja: |
+      Your task is to classify the citation intent within the excerpt from a scholarly article. Choose the correct label from the list:
+
+      - Method: References the paper for its experimental or analytical techniques.
+      - Background: Refers to the paper for contextual or introductory information.
+      - Result: Acknowledges the paper for its scientific discoveries or data.
+
+      Provide your response as a single term from the following: ["Method", "Background", "Result"], and do not output any extraneous information.
+
+      Citation sentence:
+
+      {{ string }}
+
+      |||
+
+      {{ answer_choices[label].capitalize() }}

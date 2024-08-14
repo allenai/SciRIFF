@@ -1,0 +1,71 @@
+name: data_reco_mcq_mc
+dataset: shrutisingh/dataset_recommendation_mcq_mc
+formatter:
+  name: data_reco_mcq_mc
+  args:
+    num_sents_per_cand: 2
+    max_cands: 7
+    max_pos_cands: 5
+metadata:
+  task: qa.multiple_choice
+  domains:
+  - artificial_intelligence
+  source_type: multiple_source
+  input_context: multiple_paragraphs
+  output_context: json
+  contributor: shruti-singh
+templates:
+  0:
+    jinja: |
+      You are provided with a research question, keyphrases about the question, a description of candidate datasets and dataset options. Read the description of popular datasets provided below and select the ones that can be used to validate the following research question. Use your knowledge of machine learning datasets to make the best judgement.
+      Your response should be formatted as a `json` array. For instance, for the query "Semi supervised image classification", a sample response might be: ["CIFAR-10", "CIFAR-100"]. Do not include any extra text in the response other than the answer array.
+
+      Query: {{ query }}
+
+      Keyphrases: {{ keyphrase_query }}
+
+      Dataset description:
+      {{ context }}
+
+      Options:- {{ options }}
+
+      |||
+
+      {%- set ans_list = answer.split(", ") %}
+      {{ ans_list | tojson }}
+  1:
+    jinja: |
+      Based on your experience in machine learning datasets, answer which of the following datasets are relevant to the above query. Note that multiple choices could be correct. You are provided with a description of datasets to make an informed choice.
+      Your response should be formatted as a `json` array. For instance, for the query "Semi supervised image classification", a sample response might be: ["CIFAR-10", "CIFAR-100"]
+
+      Query: {{ query }}
+
+      Keyphrases: {{ keyphrase_query }}
+
+      Dataset description:
+      {{ context }}
+
+      Choices:- {{ options }}
+
+      |||
+
+      {%- set ans_list = answer.split(", ") %}
+      {{ ans_list | tojson }}
+  2:
+    jinja: |
+      You are provided with a research query about an idea in artificial intelligence, keyphrases relevant to it, and some options of datasets relevant to the research question. Carefully read the choices and details about each dataset, and respond with relevant datasets from the choices provided below.
+      Your response should be formatted as a `json` array. For instance, for the query "Semi supervised image classification", a sample response might be: ["CIFAR-10", "CIFAR-100"]
+
+      Query: {{ query }}
+
+      Keyphrases: {{ keyphrase_query }}
+
+      Dataset details:
+      {{ context }}
+
+      Options:- {{ options }}
+
+      |||
+
+      {%- set ans_list = answer.split(", ") %}
+      {{ ans_list | tojson }}

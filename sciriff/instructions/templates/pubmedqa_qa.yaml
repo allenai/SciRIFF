@@ -1,0 +1,67 @@
+name: pubmedqa_qa
+dataset: bigbio/pubmed_qa
+subset: pubmed_qa_labeled_fold0_source
+formatter:
+  name: pubmedqa_qa
+  args: null
+metadata:
+  task: qa.yes_no
+  domains:
+  - biomedicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: label
+  contributor: shi-kejian
+templates:
+  0:
+    jinja: |
+      You will be shown an abstract from a research paper, and a corresponding research question. Determine the answer to the research question based on the context provided. Your answer should be one of: "YES", "NO", or "MAYBE".
+
+      Context:
+      {{ context }}
+
+      Question:
+      {{ question }}
+
+      Answer:
+      |||
+      {{ answer }}
+  1:
+    jinja: |
+      Analyze the given abstract from a biomedical article. Your task is to decide on the validity of the subsequent research question. Only answer with: "YES", "NO", or "MAYBE".
+
+      Context:
+      {{ context }}
+
+      Question:
+      {{ question }}
+
+      Answer:
+      |||
+      {{ answer }}
+  2:
+    jinja: |
+      Examine the contexts from a biomedical research paper abstract below. Given the information, your job is to answer a question posed about the context. Answer strictly with: "YES", "NO", or "MAYBE".
+
+      Context:
+      {{ context }}
+
+      Research Question:
+      {{ question }}
+
+      Answer:
+      |||
+      {{ answer }}
+  3:
+    jinja: |
+      Based on the provided research context(s) from a PubMed abstract, decide on the correctness of the following question. Your response should be: "YES", "NO", or "MAYBE".
+
+      Context:
+      {{ context }}
+
+      Query:
+      {{ question }}
+
+      Answer:
+      |||
+      {{ answer }}

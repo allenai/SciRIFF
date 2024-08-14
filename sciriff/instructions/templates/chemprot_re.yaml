@@ -1,0 +1,75 @@
+name: chemprot_re
+data_dir: chemprot
+metadata:
+  task: ie.relation_extraction
+  domains:
+  - biomedicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: shi-kejian
+templates:
+  0:
+    jinja: |
+      Given an abstract from a research paper, your task is to identify and label relationships between chemical compounds and genes mentioned in the abstract.
+
+      The relationship type must be one of ['DOWNREGULATOR', 'SUBSTRATE', 'INDIRECT-REGULATOR', 'PART-OF', 'MODULATOR-ACTIVATOR', 'REGULATOR', 'INHIBITOR', 'COFACTOR', 'UPREGULATOR', 'ACTIVATOR', 'ANTAGONIST', 'NOT', 'INDIRECT-DOWNREGULATOR', 'SUBSTRATE_PRODUCT-OF', 'INDIRECT-UPREGULATOR', 'AGONIST', 'PRODUCT-OF', 'MODULATOR', 'DIRECT-REGULATOR', 'UNDEFINED', 'AGONIST-INHIBITOR', 'AGONIST-ACTIVATOR', 'MODULATOR-INHIBITOR'].
+
+      Please format your output as a JSON array. Each entry in the array should express a single relation, formatted as ["<Entity_A>", "<RELATION_A_B>", "<Entity_B>"]. If no relations can be found, please output an empty JSON array [].
+
+      Abstract:
+
+      {{ org_text}}
+
+      |||
+
+      {% if re_answer|length > 0 %}
+      [{{- '' }}{% for relation in re_answer -%}
+        {{- relation.strip('()').split(', ') | tojson -}}{{- ', ' if not loop.last -}}
+      {%- endfor %}]
+      {% else %}
+      []
+      {% endif %}
+  1:
+    jinja: |
+      In the provided scientific abstract, extract and label the relationships between chemical entities.
+
+      Possible relation types include: ['DOWNREGULATOR', 'SUBSTRATE', 'INDIRECT-REGULATOR', 'PART-OF', 'MODULATOR-ACTIVATOR', 'REGULATOR', 'INHIBITOR', 'COFACTOR', 'UPREGULATOR', 'ACTIVATOR', 'ANTAGONIST', 'NOT', 'INDIRECT-DOWNREGULATOR', 'SUBSTRATE_PRODUCT-OF', 'INDIRECT-UPREGULATOR', 'AGONIST', 'PRODUCT-OF', 'MODULATOR', 'DIRECT-REGULATOR', 'UNDEFINED', 'AGONIST-INHIBITOR', 'AGONIST-ACTIVATOR', 'MODULATOR-INHIBITOR'].
+
+      Format your output as a JSON array. Each entry in the array should express a single relation, formatted as ["<Entity_A>", "<RELATION_A_B>", "<Entity_B>"]. If no relations are found, please output an empty JSON array [].
+
+      Here is the abstract:
+
+      {{ org_text}}
+
+      Output:
+      |||
+
+      {% if re_answer|length > 0 %}
+      [{{- '' }}{% for relation in re_answer -%}
+        {{- relation.strip('()').split(', ') | tojson -}}{{- ', ' if not loop.last -}}
+      {%- endfor %}]
+      {% else %}
+      []
+      {% endif %}
+  2:
+    jinja: |
+      I will provide you with an abstract section from a PubMed research paper. Your task is to extract relationships between the mentioned chemical named entities including compounds and genes.
+
+      Please only use these relation types for categorization: ['DOWNREGULATOR', 'SUBSTRATE', 'INDIRECT-REGULATOR', 'PART-OF', 'MODULATOR-ACTIVATOR', 'REGULATOR', 'INHIBITOR', 'COFACTOR', 'UPREGULATOR', 'ACTIVATOR', 'ANTAGONIST', 'NOT', 'INDIRECT-DOWNREGULATOR', 'SUBSTRATE_PRODUCT-OF', 'INDIRECT-UPREGULATOR', 'AGONIST', 'PRODUCT-OF', 'MODULATOR', 'DIRECT-REGULATOR', 'UNDEFINED', 'AGONIST-INHIBITOR', 'AGONIST-ACTIVATOR', 'MODULATOR-INHIBITOR'].
+
+      Make sure to format your output as a JSON array. Each entry in the array should express a single relation, formatted as ["<Entity_A>", "<RELATION_A_B>", "<Entity_B>"]. If no relations can be extracted, please return an empty JSON array [].
+
+      Document:
+
+      {{ org_text}}
+
+      |||
+
+      {% if re_answer|length > 0 %}
+      [{{- '' }}{% for relation in re_answer -%}
+        {{- relation.strip('()').split(', ') | tojson -}}{{- ', ' if not loop.last -}}
+      {%- endfor %}]
+      {% else %}
+      []
+      {% endif %}

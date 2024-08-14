@@ -1,0 +1,60 @@
+name: scierc_ner
+data_dir: scierc
+formatter:
+  name: scierc
+  args: null
+metadata:
+  task: ie.named_entity_recognition
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown an abstract from a computer science research paper. Given this abstract, your task is to extract all unique entities with the following types:
+
+      - "Task": Applications, problems to solve, systems to construct. Examples include "information extraction", "machine reading system", "image segmentation".
+      - "Method": : Methods, models, systems to use, or tools, components of a system, frameworks. Examples include "language model", "CORENLP", "POS parser".
+      - "Metric": Metrics, measures, or entities that can express quality of a system / method. Examples include "F1", "BLEU", "Precision", "time complexity".
+      - "Material": Data, datasets, resources, Corpus, Knowledge base. Examples include "image data", "speech data", "stereo images", "CoNLL", "Wikipedia".
+      - "OtherScientificTerm": Phrases that are a scientific terms but do not fall into any of the above classes. Examples include "physical or geometric constraints", "qualitative prior knowledge", "tree kernel", "noise".
+      - "Generic": General terms or pronouns that may refer to a entity but are not themselves informative, often used as connection words. Examples include "model", "approach", "them".
+
+      Please return the output as a JSON object of the format: {"type1" : ["example_entity", ...], "type2" : ["example_entity", ...]}. The keys should be entity types and values should be lists of extracted entities belonging to the corresponding type. Entity types with no matching entities should be assigned an empty array [].
+
+      For instance, the output might look like: {"Task": ["speech recognition", ...], "Method": ["Conditional random field"], "Material": [], ...}.
+
+      Only output the JSON object and do not include any additional text.
+
+      Abstract:
+
+      {{ org_text }}
+
+      |||
+
+      {{ ner_dict | tojson }}
+  1:
+    jinja: |
+      You will be shown an abstract from a computer science research paper. Given this abstract, your task is to extract all unique entities with the following types:
+
+      - "Task": Applications, problems to solve, systems to construct. Examples include "information extraction", "machine reading system", "image segmentation".
+      - "Method": : Methods, models, systems to use, or tools, components of a system, frameworks. Examples include "language model", "CORENLP", "POS parser".
+      - "Metric": Metrics, measures, or entities that can express quality of a system / method. Examples include "F1", "BLEU", "Precision", "time complexity".
+      - "Material": Data, datasets, resources, Corpus, Knowledge base. Examples include "image data", "speech data", "stereo images", "CoNLL", "Wikipedia".
+      - "OtherScientificTerm": Phrases that are a scientific terms but do not fall into any of the above classes. Examples include "physical or geometric constraints", "qualitative prior knowledge", "tree kernel", "noise".
+      - "Generic": General terms or pronouns that may refer to a entity but are not themselves informative, often used as connection words. Examples include "model", "approach", "them".
+
+      Please format your output as follows: <entity_name_1>: <entity_type_1> || <entity_name_2>: <entity_type_2> || ...
+
+      For instance, the output might look like: speech recognition: Task || Conditional random field: Method || ...
+
+      Here is the abstract:
+
+      {{ org_text }}
+
+      |||
+
+      {{ ner_pipe_str }}

@@ -1,0 +1,46 @@
+name: chemsum_single_document_summarization
+dataset: griffin/ChemSum
+formatter:
+  name: chemsum
+  args: null
+metadata:
+  task: summarization
+  domains:
+  - chemistry
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: paragraph
+  contributor: minyichen666,shannonzshen,dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown the title of a chemistry paper, together with sections excerpted from the body of the paper. The paper sections may include HTML tags like `<p>` and `</p>`; please ignore these. Your task is to write an abstract for the paper. Your response should include the abstract and no other text.
+
+      Title:
+      {{ title }}
+
+      Paper sections:
+      {{ article_text }}
+
+      |||
+
+      {{ abstract }}
+  1:
+    jinja: |
+      In what follows, you will be shown the title of a chemistry paper, together with sections excerpted from the paper. The start and end of the paper contents will be delimited by a line of dashes, like this: `---------------`.
+
+      ----------------------------------------
+
+      Title:
+      {{ title }}
+
+      Paper sections:
+      {{ article_text }}
+
+      ----------------------------------------
+
+      Please write an abstract for the paper above. In your response, write only the abstract and no additional tet.
+
+      |||
+
+      {{ abstract }}

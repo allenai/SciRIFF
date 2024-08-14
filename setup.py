@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 
+
 setup(
     name="sciriff",
     version="0.1.0",
@@ -16,7 +17,10 @@ setup(
         "jsonschema==4.22.0",
         "beaker-py",
         "spacy==3.7.4",
-        "openai==1.33.0"
+        "openai==1.33.0",
+        "thefuzz==0.20.0",
+        "pytest",
+        "tqdm"
     ],
     include_package_data=True,
 )

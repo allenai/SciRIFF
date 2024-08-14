@@ -1,0 +1,35 @@
+name: scientific_papers_summarization_single_doc_pubmed
+dataset: scientific_papers
+subset: pubmed
+formatter:
+  name: scientific_papers
+  args: null
+metadata:
+  task: summarization
+  domains:
+  - biomedicine
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: paragraph
+  contributor: yujieqiao,shannonzshen,dwadden
+templates:
+  0:
+    jinja: |
+      You will be presented with the full text of a biomedical research paper. Please write an abstract for this paper. Your response should include the abstract and no additional text.
+
+      Paper text:
+      {{ article }}
+
+      |||
+
+      {{ abstract }}
+  1:
+    jinja: |
+      Below is the text of a biomedical research article. Your task is to write an abstract for the paper. Your response should not include any text other than the abstract.
+
+      Article text:
+      {{ article }}
+
+      |||
+
+      {{ abstract }}

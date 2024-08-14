@@ -1,0 +1,46 @@
+name: bioasq_yesno_qa
+data_dir: bioasq_task11b_yesno_qa
+metadata:
+  task: qa.yes_no
+  domains:
+  - biomedicine
+  source_type: multiple_source
+  input_context: multiple_paragraphs
+  output_context: label
+  contributor: shruti-singh
+templates:
+  0:
+    jinja: |
+      You have to answer a biomedical question in binary format, i.e. only yes and no are the only acceptable answer formats. A list of paragraphs is provided as context to help you answer the question.
+
+      Question: {{ question }}
+
+      Context: {{ snippets}}
+
+      |||
+
+      {{ binary_ans }}
+  1:
+    jinja: |
+      Read the following question and biomedical documents. Answer the question in either yes or no. Do not include any text in your response other than the answer.
+
+      Question: {{ question }}
+
+      Context: {{ snippets }}
+
+      |||
+
+      {{ binary_ans }}
+  2:
+    jinja: |
+      You have to evaluate the answer to a biomedical question. Some relevant context is provided to you containing the answer; use it to evaluate whether the answer is correct. Respond in yes or no only.
+
+      Question: {{ question }}
+
+      Answer: {{ student_binary_ans }}
+
+      Context: {{ snippets }}
+
+      |||
+
+      {{ student_binary_eval }}

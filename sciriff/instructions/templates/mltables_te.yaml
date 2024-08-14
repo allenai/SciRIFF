@@ -1,0 +1,30 @@
+name: mltables_te
+dataset: fbaigt/schema-to-json
+subset: mltables
+formatter:
+  name: mltables_te
+  args: null
+metadata:
+  task: ie.structure_to_json
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: structured
+  output_context: jsonlines
+  contributor: bflashcp3f
+templates:
+  0:
+    jinja: |
+      {{ table_code_text }}
+
+      You are provided with a table and supplementary text from a machine learning paper. Here are JSON templates for four types of numeric cells: "Other", "Data Stat.", "Hyper-parameter/Architecture", and "Result":
+      {"value": "xx", "type": "Other"}
+      {"value": "xx", "type": "Data Stat.", "dataset": "xx", "attribute name": "xx", "sub-set/group name": "xx", "dataset features": {"xx": "yy"}}
+      {"value": "xx", "type": "Hyper-parameter/Architecture", "model": "xx", "parameter/architecture name": "xx", "dataset": "xx"}
+      {"value": "xx", "type": "Result", "task": "xx", "metric": "xx", "training data/set": "xx", "test data/set": "xx", "model": "xx", "model settings": {"xx": "yy"}, "experimental settings": {"xx": "yy"}}
+
+      Please describe all numeric cells in the above latex table following the JSON templates (proceeding by row in a left-right, top-down direction). For each cell, output one JSON description per line. For any unanswerable attributes in the templates, set their value to the placeholder "xx" if it is of string type and {"xx": "yy"} if it is of dictionary type. Numeric cells, which describe performance/error analysis, should be labeled as "Other".
+
+      Cell Description:
+      |||
+      {{ json_records }}

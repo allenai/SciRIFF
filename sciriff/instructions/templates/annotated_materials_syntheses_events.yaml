@@ -1,0 +1,40 @@
+name: annotated_materials_syntheses_events
+data_dir: annotated_materials_syntheses
+formatter:
+  name: bigbio_events
+  args:
+    event_types_map: null
+    role_types_map: Atmospheric_Material:Atmospheric_Material,Participant_Material:Participant_Material,Recipe_Precursor:Recipe_Precursor,Recipe_Target:Recipe_Target,Solvent_Material:Solvent_Material
+    min_arguments: 1
+metadata:
+  task: ie.event_extraction
+  domains:
+  - materials_science
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown an abstract from a materials science research paper. Your task is to extract all synthesis operations described in the abstract into a structured JSON format. Your output should be a JSON array. Each entry in the array should be a JSON object describing a single synthesis operation. This object should have the following fields:
+
+      - "trigger": A verbal predicate indicating a synthesis operation. This should be a string extracted directly from the abstract.
+      - "arguments": An array of arguments specifying aspects of the synthesis operation. Each entry in the array should be a length-2 array formatted as [<argument_text>, <argument_type>]. The `argument_text` should be a string extracted directly from the abstract. The `argument_type` should be one of the following types: {{ role_types_list | tojson }}.
+
+      For instance, suppose an excerpt from the abstract reads:
+
+      Tetraethoxysilane (TEOS, 98%) and cetyltrimethylammonium bromide (CTAB, 98%) were purchased from Fluka. The MTTZ-siloxy derivative (triethoxysilyl-propyl-5-mercapto-1-methyl-tetrazole) was synthesized as previously described [38].
+
+      This excerpt includes two operations, which could be annotated as follows.
+
+      [{"arguments": [["Tetraethoxysilane", "Recipe_Precursor"], ["cetyltrimethylammonium bromide", "Recipe_Precursor"]], "trigger": "purchased"}, {"arguments": [["MTTZ-siloxy derivative", "Recipe_Target"]], "trigger": "synthesized"}]
+
+      In your response, please include the JSON and no other text.
+
+      Abstract:
+      {{ abstract }}
+
+      |||
+
+      {{ events | tojson }}

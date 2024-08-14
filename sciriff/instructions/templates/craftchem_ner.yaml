@@ -1,0 +1,49 @@
+name: craftchem_ner
+dataset: ghadeermobasher/CRAFT-Chem
+subset: null
+formatter:
+  name: craftchem_ner
+  args: null
+metadata:
+  task: ie.named_entity_recognition
+  domains:
+  - biomedicine
+  source_type: single_source
+  input_context: sentence
+  output_context: json
+  contributor: yujieqiao,shi-kejian
+templates:
+  0:
+    jinja: |
+      You will be presented a sentence from biomedical research text. Extract all terms that correspond to chemical entities of biological interest (ChEBI).
+      Return your identified terms in a JSON array, formatted like this: ["Entity1", "Entity2", ...].
+      If no such entities are detected, respond by providing an empty JSON array [].
+
+      Biomedical context:
+      {{ tokens | join('' '') }}
+
+      |||
+
+      {{ entities | tojson }}
+  1:
+    jinja: |
+      Examine a provided sentence from a piece of biomedical literature and extract terms that are chemical entities of biological interest (ChEBI).
+      Output your answer as a JSON array, with the format appearing as ["Entity1", "Entity2", ...]. Should there be an absence of such entities in the sentence, return an empty JSON array [].
+
+      Sentence:
+      {{ tokens | join('' '') }}
+
+      |||
+
+      {{ entities | tojson }}
+  2:
+    jinja: |
+      You will be presented with a sentence from biomedical research text, your task is to extract and list terms that pertain to the chemical entities of biological interest ontology (ChEBI).
+      Format your output as a JSON array, for instance: ["Entity1", "Entity2", ...]. In the event that no entities are present, please output an empty JSON array: [].
+
+      Sentence:
+      {{ tokens | join('' '') }}
+
+      |||
+
+      {{ entities | tojson }}

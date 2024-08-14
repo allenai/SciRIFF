@@ -1,0 +1,48 @@
+name: bioasq_factoid_qa
+data_dir: bioasq_task11b_factoid_qa
+metadata:
+  task: qa.abstractive
+  domains:
+  - biomedicine
+  source_type: multiple_source
+  input_context: multiple_paragraphs
+  output_context: sentence
+  contributor: shruti-singh
+templates:
+  0:
+    jinja: |
+      You will be shown biomedical passages and your task is to the answer the provided question. Provide a concise and accurate response and do not include any additional text in the response other than the answer.
+
+      Question: {{ question }}
+
+      Context: {{ snippets }}
+
+      |||
+
+      {{ correct_ans }}
+  1:
+    jinja: |
+      Read the following passages from biomedical scientific texts and provide
+      a concise answer to the question.
+
+      Question: {{ question }}
+
+      Context: {{ snippets }}
+
+      |||
+
+      {{ correct_ans }}
+  2:
+    jinja: |
+      You are provided with biomedical questions and answers. You are required to evaluate the answers. Some excerpts from biomedical research
+      papers are also provided to help you make an informed decision. If the provided answer is incorrect, provide the correct response.
+
+      Question: {{ question }}
+      Answer: {{ student_ans }}
+
+      Research paper snippets:
+      {{ snippets }}
+
+      |||
+
+      {{ student_eval }}

@@ -1,0 +1,37 @@
+name: evidence_inference
+data_dir: evidence_inference
+metadata:
+  task: ie.relation_extraction
+  domains:
+  - clinical_medicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown the abstract of a medical clinical trial report. Your task is to extract all the findings from this report into a JSON array. Each finding should contain the following five elements:
+
+      - Intervention: The medical intervention being tested. This should be a text span copied from the input passage.
+      - Comparator: The baseline against which the intervention is being evaluated. This should be a text span copied from the input passage. If no comparator is reported, set to `null`.
+      - Outcome: The medical outcome whose effect is being measured. This should be a text span copied from the input passage.
+      - Effect: The effect of the intervention on the outcome, relative to the comparator. The effect should be one of the following three values: ("significantly increased", "significantly decreased", "no significant difference").
+      - Evidence: The evidence for the effect. This should be a text span copied from the input passage.
+
+      Please format your output as a JSON array. Each entry in the output should be an array containing the 5 elements listed above, in the following order: [<intervention>, <comparator>, <outcome>, <effect>, <evidence>].
+
+      For example, an output with two findings might read:
+      ```
+      [["aspirin", "placebo", "headache severity", "significantly decreased", "Mean headache severity was significantly decreased in the aspirin group compared to the placebo group (p < 0.05)."], ["aspirin", "placebo", "weight loss", "no significant difference", "We did not observe any difference in weight loss between the group given aspirin relative to the control group"]]
+      ```
+
+      There are {{ evidence | length }} finding(s) in the abstract below. Please extract them. Output only the JSON array with these {{ evidence | length }} findings. Do not include any additional text.
+
+      Abstract:
+      {{ document }}
+
+      Findings:
+      |||
+
+      {{ evidence | tojson }}

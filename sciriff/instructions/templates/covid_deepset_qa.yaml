@@ -1,0 +1,49 @@
+name: covid_deepset_qa
+dataset: covid_qa_deepset
+formatter:
+  name: covid_deepset_qa
+  args:
+    tokenizer_path: meta-llama/Llama-2-7b-hf
+    instruction_tokens: 200
+metadata:
+  task: qa.extractive
+  domains:
+  - biomedicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: sentence
+  contributor: shruti-singh
+templates:
+  0:
+    jinja: |
+      You will be shown a paragraph from a biomedical research paper, followed by a question about the paper. Please extract text from the paragraph to answer the question. Do not include any text in your repsonse other than the answer.
+
+      Paragraph: {{article}}
+
+      Question: {{question}}
+
+      |||
+
+      {{answer}}
+  1:
+    jinja: |
+      A question and a paragraph from a biomedical scientific paper is provided. Extract the answer of the question from the paragraph. Do not include any extra text in your response other than the answer.
+
+      Question: {{question}}
+
+      Paragraph: {{article}}
+
+      |||
+
+      {{answer}}
+  2:
+    jinja: |
+      Question: {{question}}
+
+      Answer the above question based on the biomedical research paper provided below. Extract the answer from the paper only. Do not include any other information in the response other than the answer.
+
+      Paper: {{article}}
+
+      |||
+
+      {{answer}}

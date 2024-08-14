@@ -1,0 +1,28 @@
+name: discomat_te
+dataset: fbaigt/schema-to-json
+subset: discomat
+formatter:
+  name: discomat_te
+  args: null
+metadata:
+  task: ie.structure_to_json
+  domains:
+  - materials_science
+  source_type: single_source
+  input_context: structured
+  output_context: jsonlines
+  contributor: bflashcp3f
+templates:
+  0:
+    jinja: |
+      {{ table_code_text }}
+
+      You are provided with a table from a material science paper. Here are JSON templates for two types of numeric cells: "Other" and "Glass_Compound_Amount":
+      {"value": "xx", "type": "Other"}
+      {"value": "xx", "type": "Glass_Compound_Amount", "constituent": "xx", "unit": "xx", "material": "xx"}
+
+      Please describe all numeric cells in the above table following the JSON templates (proceeding by row in a left-right, top-down direction). For each cell, output one JSON description per line. For any unanswerable attributes in the templates, set their value to the placeholder "xx".
+
+      Cell Description:
+      |||
+      {{ json_records }}

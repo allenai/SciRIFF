@@ -1,0 +1,54 @@
+name: scifact_entailment
+dataset: allenai/scifact_entailment
+subset: null
+formatter:
+  name: science_fact_checking
+  args: null
+metadata:
+  task: entailment
+  domains:
+  - biomedicine
+  - clinical_medicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown a scientific claim, and the abstract of a biomedical research paper. Each sentence from the abstract will be on a separate line. Your task is to return a JSON object with two fields:
+
+      - "verdict": The fact-checking verdict. If the information in the abstract supports the claim, write "SUPPORT". If the abstract contradicts the claim, write "CONTRADICT". If the abstract does not provide enough information to arrive at a verdict, write "NEI" (for "not enough information").
+      - "evidence": An array of sentences providing evidence for the verdict. Please copy all relevant sentences verbatim from the abstract. If the verdict was "NEI", then return an empty array.
+
+      For instance, if the model were given the claim "smoking causes cancer", the output might be
+      {
+        "verdict": "SUPPORT",
+        "evidence": ["The results of our meta-analysis provide overwhelming support that cigarette smoking is a risk cause for lung cancer."]
+      }
+
+      Your response should not include any text other than the json.
+
+      Claim: {{ claim }}
+
+      Abstract:
+      {{ abstract_with_newlines }}
+
+      |||
+
+      {{ output_json_with_sentences }}
+  1:
+    jinja: |
+      You will be provided a scientific claim, and the abstract of a scientific paper. Each sentence in the abstract will be prefixed with a number enclosed in brackets, e.g. [0], [1], etc. Your task is to return a JSON object with two fields:
+
+      - "verdict": The fact-checking verdict. If the information in the abstract supports the claim, write "SUPPORT". If the abstract contradicts the claim, write "CONTRADICT". If the abstract does not provide enough information to arrive at a verdict, write "NEI" (for "not enough information").
+      - "evidence": An array of sentence ID's providing evidence for the verdict. For instance, if sentences 0 and 3 provide evidence, write [0, 3]. If the fact-checking verdict was NEI, return an empty array.
+
+      Claim: {{ claim }}
+
+      Abstract:
+      {{ abstract_with_ids }}
+
+      |||
+
+      {{ output_json_with_ids }}

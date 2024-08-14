@@ -1,0 +1,53 @@
+name: qasper_abstractive_qa
+dataset: allenai/qasper
+formatter:
+  name: qasper
+  args:
+    question_type: abstractive
+metadata:
+  task: qa.abstractive
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: json
+  contributor: dwadden
+templates:
+  0:
+    jinja: |
+      You will be shown sections from a scientific research paper, together with a question about the paper. Paragraphs in the paper are separated by newlines. Your task is to answer the question based on the contents of the paper.
+
+      Paper:
+      ----------------------------------------
+      {{paper}}
+      ----------------------------------------
+
+      Question: {{question}}
+
+      To answer the question, format your response as a `json` object with two fields:
+
+      "answer": A string providing a succinct answer to the question, in your own words.
+      "evidence": An array of strings. Each entry should be a full paragraph from the paper. Together, the evidence should serve as a justification for the answer.
+
+      For instance, for the question "What baselines did the authors compare against?", a sample response might be:
+
+      {
+        "answer": "BERT and RoBERTa."
+        "evidence": ["We compare our approach against two baselines. In Table 1, we compare against BERT. In Table 2, we compare against RoBERTa. Our findings indicate that our approach improves over both baeslines..."]
+      }
+
+      The "answer" field should be roughly {{ answer | length }} characters in length.
+
+      Do not include any text in your response other than the json. If the question is unanswerable given the provided excerpts, respond with the single word "null".
+
+      To repeat, the question is: {{question}}
+
+      Answer JSON object:
+
+      |||
+
+      {% if unanswerable %}
+      null
+      {% else %}
+      {{ {"answer": answer, "evidence": evidence} | tojson }}
+      {% endif %}

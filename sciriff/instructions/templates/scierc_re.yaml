@@ -1,0 +1,43 @@
+name: scierc_re
+data_dir: scierc
+formatter:
+  name: scierc
+  args: null
+metadata:
+  task: ie.relation_extraction
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: shi-kejian
+templates:
+  0:
+    jinja: |
+      Below is an abstract from a computer science research paper. Given this abstract, your task is to extract all unique relationships between entities of the following types:
+
+      - "USED-FOR": For instance, "Our method models user proficiency" -> ["method", "user proficiency", "USED-FOR"].
+      - "EVALUATE-FOR": For instance, "We evaluate our method using F1-measure" -> ["F1-measure", "method", "EVALUATE-FOR"].
+      - "FEATURE-OF": For instance, "prior knowledge of the model" -> ["prior knowledge", "model", "FEATURE-OF"].
+      - "HYPONYM-OF": For instance, "TUIT is a software library" -> ["TUIT", "software library", "HYPONYM-OF"].
+      - "PART-OF": For instance, "We incorporate NLU module into the system." -> ["NLU module", "system", "PART-OF"].
+      - "COMPARE": For instance, "Unlike the quantitative prior, the qualitative prior is often ignored" -> ["quantitative prior", "qualitative prior", "COMPARE"].
+      - "CONJUNCTION": For instance: "obtained from human expert or knowledge base" -> ["human expert", "knowledge base", "CONJUNCTION"].
+
+      Format your output as a json array. Each entry in the array should express a single relation, formatted as ["<Entity_A>", "<Entity_B>", "<RELATION_A_B>"]. An example output might look like:
+
+      [["neural networks", "classification", "USED-FOR"], ["neuron", "neural network", "PART-OF"]].
+
+      If no relations are found, please return an empty array [].
+
+      Abstract:
+
+      {{ org_text}}
+
+      |||
+
+      {% if re_answer|length > 0 %}
+      {{ re_answer | tojson }}
+      {% else %}
+      []
+      {% endif %}

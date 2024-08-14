@@ -1,0 +1,46 @@
+name: mslr2022_cochrane_multidoc_summarization
+dataset: allenai/mslr2022
+subset: cochrane
+skip_splits:
+- test
+metadata:
+  task: summarization
+  domains:
+  - clinical_medicine
+  source_type: multiple_source
+  input_context: paragraph
+  output_context: paragraph
+  contributor: shi-kejian,dwadden
+templates:
+  0:
+    jinja: |
+      You will be provided with the titles and abstracts of a collection of medical RCT reports studying a clinical question -- for instance, the efficacy of an intervention on some medical outcome. Please write a few sentences synthesizing the findings of these reports, which could serve as a conclusion section for a systematic review article. Your response should not include any other text. The RCT reports are below.
+
+      {% set count = namespace(value=0) %}
+      {% for ab in abstract %}
+      Title {{count.value + 1}}:
+      {{title[count.value]}}
+      Abstract {{count.value + 1}}:
+      {{abstract[count.value]}}
+      {% set count.value = count.value + 1 %}
+      {% endfor %}
+
+      |||
+
+      {{ target }}
+  1:
+    jinja: |
+      You will be presented with a collection of medical randomized controlled trial (RCT) reports addressing a shared clinical question -- for instance, the efficacy of a medical intervention on a disease or condition. Given the titles and abstracts of these reports, your task is to generate the conclusion of the systematic review article synthesizing the key findings. Your conclusion should be a few sentences long. In your response, include only the conclusion and no other text. The RCT reports are below.
+
+      {% set count = namespace(value=0) %}
+      {% for ab in abstract %}
+      Title {{count.value + 1}}:
+      {{title[count.value]}}
+      Abstract {{count.value + 1}}:
+      {{abstract[count.value]}}
+      {% set count.value = count.value + 1 %}
+      {% endfor %}
+
+      |||
+
+      {{ target }}

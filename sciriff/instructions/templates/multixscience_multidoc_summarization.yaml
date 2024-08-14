@@ -1,0 +1,58 @@
+name: multixscience_multidoc_summarization
+dataset: multi_x_science_sum
+formatter:
+  name: multixscience_sum
+  args: null
+metadata:
+  task: summarization
+  domains:
+  - artificial_intelligence
+  - biomedicine
+  - materials_science
+  - misc
+  source_type: multiple_source
+  input_context: multiple_paragraphs
+  output_context: paragraph
+  contributor: shi-kejian
+templates:
+  0:
+    jinja: |
+      You are provided with the abstract of a scientific paper and the abstracts of the papers it references. Your task is to write a Related Work section for the main paper. This section should concisely summarize and integrate the key points from the cited abstracts, reflecting how they relate to the main paper's contributions and context. In your summary, use numerical citation markers like [1], [2], etc., to refer to the corresponding papers.
+
+      Main Abstract:
+      {{ main_abstract }}
+
+      Cited Abstract(s):
+      {{ cited_abstracts_transformed }}
+
+      |||
+
+      {{ related_work_transformed }}
+  1:
+    jinja: |
+      Given an abstract and its cited papers' abstracts, please write the Related Work section of the main scientific abstract. This constructed section should integrate the main themes and findings from the cited abstracts in a manner that highlights their relevance to the main paper. Be sure to use numerical citation markers like [1], [2], etc., when referencing the cited papers.
+
+      Main Abstract:
+
+      {{ main_abstract }}
+
+      Cited Abstract(s):
+
+      {{ cited_abstracts_transformed }}
+
+      |||
+
+      {{ related_work_transformed }}
+  2:
+    jinja: |
+      Your task is to write a Related Work paragraph based on the abstract of a research article and several abstracts of its referenced papers. The section should be a synthesis that encapsulates the main ideas from the cited abstracts and articulates how they inform and support the main paper's research. Remember to use numerical citation markers like [1], [2], etc., to cite the referenced papers appropriately.
+
+      Main Abstract:
+      {{ main_abstract }}
+
+      Cited Abstract(s):
+      {{ cited_abstracts_transformed }}
+
+      |||
+
+      {{ related_work_transformed }}

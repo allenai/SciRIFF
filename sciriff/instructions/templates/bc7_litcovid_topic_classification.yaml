@@ -1,0 +1,75 @@
+name: bc7_litcovid_topic_classification
+dataset: bigbio/bc7_litcovid
+subset: bc7_litcovid_bigbio_text
+formatter: null
+metadata:
+  task: classification
+  domains:
+  - clinical_medicine
+  source_type: single_source
+  input_context: paragraph
+  output_context: json
+  contributor: minyichen666,shi-kejian
+templates:
+  0:
+    jinja: |
+      You are presented with a paragraph from a COVID-19 literature. Classify the topics of this piece of text by choosing from the following categories:
+
+      - Epidemic Forecasting: The content relates to predictions about the spread of COVID-19.
+      - Treatment: The paragraph discusses therapeutic methods or medication for COVID-19.
+      - Prevention: The content covers measures to prevent the spread of COVID-19.
+      - Mechanism: The paragraph explains the biological mechanisms of the virus.
+      - Case Report: The content is a report of a COVID-19 case.
+      - Transmission: The paragraph discusses how COVID-19 is transmitted.
+      - Diagnosis: The content is about diagnosing COVID-19 in individuals.
+
+      Your classification should be provided as an element within a JSON array. The array should be formatted with topics enclosed in double quotes and separated by commas, following the JSON format, for example: ["Topic1", "Topic2", ...]. Include all applicable topics within the array. Your output should be a valid JSON array, and no additional text should be included in your response.
+
+      Article:
+
+      {{ text }}
+
+      |||
+
+      {{ labels | tojson }}
+  1:
+    jinja: |
+      Classify the relevant topics for the paragraph taken from a COVID-19 research article. Select all applicable categories:
+
+      - Epidemic Forecasting: Pertains to projections about COVID-19's prevalence and trajectory.
+      - Treatment: Discusses treatments or medications applicable to COVID-19.
+      - Prevention: Addresses strategies to inhibit the spread of COVID-19.
+      - Mechanism: Describes the underlying biological processes of the virus.
+      - Case Report: Constitutes a detailed account of a COVID-19 patient's case.
+      - Transmission: Explores the modes of COVID-19 transmission.
+      - Diagnosis: Concerns the methods for detecting COVID-19 in patients.
+
+      Please ensure that each classification is represented as a string within a JSON array. An example of the correct output format would be: ["Theme1", "Theme2", ...]. Include all applicable topics within the array, and your response should exclusively contain this JSON array without any supplementary text.
+      Article Paragraph:
+
+      {{ text }}
+
+      |||
+
+      {{ labels | tojson }}
+  2:
+    jinja: |
+      Identify the topics present in the following paragraph from a piece of COVID-19 literature by choosing the appropriate categories:
+
+      - Epidemic Forecasting: Involves forecasting COVID-19 trends.
+      - Treatment: Refers to therapeutic interventions or drugs for COVID-19.
+      - Prevention: Involves measures to avert COVID-19 transmission.
+      - Mechanism: Elucidates how the COVID-19 virus operates biologically.
+      - Case Report: Is a narrative of an individual's COVID-19 experience.
+      - Transmission: Details how COVID-19 spreads among people.
+      - Diagnosis: Discusses how to identify COVID-19 in individuals.
+
+      Labels should be formatted as a series of strings within a JSON array, such as: ["Label1", "Label2", ...]. Ensure you include all labels that are pertinent, and present your response as a clean JSON array, without any additional textual content.
+
+      Extract from Article:
+
+      {{ text }}
+
+      |||
+
+      {{ labels | tojson }}

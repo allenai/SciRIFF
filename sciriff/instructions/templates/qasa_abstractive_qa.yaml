@@ -1,0 +1,28 @@
+name: qasa_abstractive_qa
+data_dir: qasa
+formatter:
+  name: qasa
+  args:
+    tokenizer_path: meta-llama/Llama-2-7b-hf
+    instruction_tokens: 200
+    removal_thresh_percentage: 0.2
+metadata:
+  task: qa.abstractive
+  domains:
+  - artificial_intelligence
+  source_type: single_source
+  input_context: multiple_paragraphs
+  output_context: paragraph
+  contributor: shruti-singh
+templates:
+  0:
+    jinja: |
+      You will be shown an excerpt from a computer science scientific research paper, followed by a question about the paper. Please answer the question. Do not include any text in your response other than the answer.
+
+      Context: {{context}}
+
+      Question: {{question}}
+
+      |||
+
+      {{composition}}

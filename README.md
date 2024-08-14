@@ -21,6 +21,12 @@ conda create --name sciriff python=3.11
 conda activate sciriff
 ```
 
+Set `$PROJECT_ROOT` to the top-level directory where you pulled the code.
+
+```bash
+conda env config vars set PROJECT_ROOT=[path-to-sciriff-code]
+```
+
 We use the Eleuther harness to handle inference for evaluation. For stability, it's best to install a specific commit, as follows:
 
 ```bash
@@ -38,11 +44,19 @@ pip install -e .
 
 You may get a warning about incompatible versions of the `typer` package; this can safely be ignored.
 
+Then, grab this Spacy model:
+
+```bash
+python -m spacy download en_core_web_sm
+```
+
 For two of our evaluations, we use GPT-3.5 as an LM judge. In order to do these evaluations, you'll need an OpenAI API key:
 
 ```bash
-export OPENAI_API_KEY=[your_openai_key]
+conda env config vars set OPENAI_API_KEY=[your_openai_key]
 ```
+
+Finally, to recreate the dataset fully, you'll need [Git LFS](https://git-lfs.com/) installed; a few datasets that weren't easily downloadable online are stored via `lfs`. These are described in [lfs_datasets.md](doc/lfs_datasets.md).
 
 ## Evaluation
 
@@ -130,7 +144,23 @@ You can also use the open-instruct code to run evals on general instruction-foll
 
 ## Recreating the dataset
 
-We will provide templates and scripts shortly to recreate the dataset.
+Steps to recreate the dataset are below. More detail on how to add your own tasks be found in [dataset_creation.md](doc/dataset_creation.md).
+
+- Run `bash script/data/get_all_datasets.sh` to download datasets that aren't available on Huggingface. The results will go in `data/preprocessing`.
+  - Note that for BioASQ you need to download the raw data manually, after registering. You'll need to create an account at <http://participants-area.bioasq.org/datasets/>, download the `zip` files containing the train and test split of Task 11B, and place them in `data/preprocessing/downloads/bioasq_task11b`.
+- Run `bash script/instructions/build_instructions.sh`. Make sure to run the script from the root of the project to get the paths right. This will convert all datasets to a common instruction-following format and dump the results in `data/instructions/{context_length}/{task_name}`. It will then merge the instances across all tasks into a single file per fold and context window; the results go in `instructions_hf/{context_length}`. The `4096` directory corresponds to the Huggingface dataset [allenai/SciRIFF](https://huggingface.co/datasets/allenai/SciRIFF). Note that the instances may not be identical since we subsample large datasets.
+  - NOTE: By default, this script will parallelize across tasks, using the number of processes specified by the `--workers` flag to `instantiate.py`. To run sequentially, remove this flag.
+- To create a training mix consisting of 1,000 instances per science task combined with a matching number of instances randomly sampled from Tulu (the best-performing mix from our preprint), run:
+
+  ```bash
+  python script/instructions/create_mixture.py \
+    --instances_per_task 1000 \
+    --instance_dir data/instructions/4096 \
+    --tulu match \
+    --out_dir data/training_mix
+  ```
+
+  The result will go to `data/training_Mix/tulu_match_science_1000_eval_no.jsonl`. To see all the options for training mixture creation, take a look at the `create_mixture` script.
 
 ## The SciRIFF collection
 

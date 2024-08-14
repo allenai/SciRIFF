@@ -1,0 +1,61 @@
+type: object
+required:
+  - task
+  - domains
+  - source_type
+  - input_context
+  - output_context
+  - contributor
+additionalProperties: false
+properties:
+  task:
+    type: string
+    enum:
+      - summarization
+      - ie.named_entity_recognition
+      - ie.relation_extraction
+      - ie.event_extraction
+      - ie.structure_to_json
+      - qa.yes_no
+      - qa.multiple_choice
+      - qa.extractive
+      - qa.abstractive
+      - entailment
+      - classification
+      - generation          # Open-ended generation tasks that are NOT summarization, such as Review Generation, Hypothesis Generation, etc.
+      - dialog
+      - ranking
+  domains:
+    type: array
+    items:
+      enum:
+        - clinical_medicine   # Tasks involving datasets that study clinical medicine, including clinical trials and case reports.
+        - biomedicine         # Tasks involving datasets that encompass molecular biology, biochemistry, genetics, and translational research.
+        - chemistry
+        - artificial_intelligence
+        - materials_science
+        - misc                # This domain serves as a catch-all category for datasets that encompass a wide array of subjects, such as extensive scrapes from multidisciplinary archives, which are challenging to classify into a single domain.
+  source_type:
+    type: string
+    enum:
+      - single_source
+      - multiple_source
+  input_context:
+    type: string
+    enum:
+      - sentence            # A single sentence, e.g., for a sentence-level IE task.
+      - paragraph           # A paragraph. For instance, a paragraph-level question answering task.
+      - multiple_paragraphs # Multiple paragraphs. This can include a full document, as it is essentially a series of multiple paragraphs.
+      - structured
+  output_context:
+    type: string
+    enum:
+      - label               # E.g."yes"/"no", "entailment"/"contradiction"/"neutral".
+      - sentence
+      - paragraph
+      - multiple_paragraphs
+      - json
+      - jsonlines           # Each line should parse to a json object.
+      - ranking             # e.g. "[9] > [4] = [20] > . . . > [13]" (from RankZephyr paper, but with added ties)
+  contributor:
+    type: string
