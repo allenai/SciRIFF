@@ -11,6 +11,7 @@ The SciRIFF dataset, as well as the SciTulu models trained on SciRIFF, are avail
 - [Evaluation](#evaluation)
 - [Model training](#model-training)
 - [Recreating the dataset](#recreating-the-dataset)
+- [Contributing](#contributing)
 
 ## The SciRIFF collection
 
@@ -170,3 +171,8 @@ Steps to recreate the dataset are below. More detail on how to add your own task
   ```
 
   The result will go to `data/training_Mix/tulu_match_science_1000_eval_no.jsonl`, and corresponds to [allenai/SciRIFF-train-mix](https://huggingface.co/datasets/allenai/SciRIFF-train-mix) on Huggingface. To see all the options for training mixture creation, take a look at the `create_mixture` script.
+
+
+## Contributing
+
+We welcome contributions! Follow the steps above and in [dataset_creation.md](doc/dataset_creation.md) to add a new task, and submit a PR!
