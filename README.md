@@ -6,11 +6,20 @@ The SciRIFF dataset, as well as the SciTulu models trained on SciRIFF, are avail
 
 **Table of Contents**
 
+- [The SciRIFF collection](#the-sciriff-collection)
 - [Setup](#setup)
 - [Evaluation](#evaluation)
 - [Model training](#model-training)
 - [Recreating the dataset](#recreating-the-dataset)
-- [The SciRIFF collection](#the-sciriff-collection)
+
+## The SciRIFF collection
+
+The [SciRIFF](https://huggingface.co/collections/allenai/sciriff-665f61ba7315e1d202e5f6bf) collection on Hugging Face consists of the following:
+
+- [SciRIFF](https://huggingface.co/datasets/allenai/SciRIFF): The full SciRIFF dataset as described in our [preprint](https://arxiv.org/abs/2406.07835).
+- [SciRIFF-train-mix](https://huggingface.co/datasets/allenai/SciRIFF-train-mix) The training mix used to train our SciTulu models; also described in the [preprint](https://arxiv.org/abs/2406.07835).
+- [SciTulu 7B](https://huggingface.co/allenai/scitulu-7b): Checkpoint for the SciTulu 7B model.
+- [SciTulu 70B](https://huggingface.co/allenai/scitulu-70b): Checkpoint for the SciTulu 70B model.
 
 ## Setup
 
@@ -148,7 +157,7 @@ Steps to recreate the dataset are below. More detail on how to add your own task
 
 - Run `bash script/data/get_all_datasets.sh` to download datasets that aren't available on Huggingface. The results will go in `data/preprocessing`.
   - Note that for BioASQ you need to download the raw data manually, after registering. You'll need to create an account at <http://participants-area.bioasq.org/datasets/>, download the `zip` files containing the train and test split of Task 11B, and place them in `data/preprocessing/downloads/bioasq_task11b`.
-- Run `bash script/instructions/build_instructions.sh`. Make sure to run the script from the root of the project to get the paths right. This will convert all datasets to a common instruction-following format and dump the results in `data/instructions/{context_length}/{task_name}`. It will then merge the instances across all tasks into a single file per fold and context window; the results go in `instructions_hf/{context_length}`. The `4096` directory corresponds to the Huggingface dataset [allenai/SciRIFF](https://huggingface.co/datasets/allenai/SciRIFF). Note that the instances may not be identical since we subsample large datasets.
+- Run `bash script/instructions/build_instructions.sh`. Make sure to run the script from the root of the project to get the paths right. This will convert all datasets to a common instruction-following format and dump the results in `data/instructions/{context_length}/{task_name}`. It will then merge the instances across all tasks into a single file per fold and context window; the results go in `instructions_hf/{context_length}`. The `4096` directory corresponds to the Huggingface dataset [allenai/SciRIFF](https://huggingface.co/datasets/allenai/SciRIFF). Note that the instances may not be identical since we randomly subsample datasets with more than 2,500 instances.
   - NOTE: By default, this script will parallelize across tasks, using the number of processes specified by the `--workers` flag to `instantiate.py`. To run sequentially, remove this flag.
 - To create a training mix consisting of 1,000 instances per science task combined with a matching number of instances randomly sampled from Tulu (the best-performing mix from our preprint), run:
 
@@ -160,13 +169,4 @@ Steps to recreate the dataset are below. More detail on how to add your own task
     --out_dir data/training_mix
   ```
 
-  The result will go to `data/training_Mix/tulu_match_science_1000_eval_no.jsonl`. To see all the options for training mixture creation, take a look at the `create_mixture` script.
-
-## The SciRIFF collection
-
-The [SciRIFF](https://huggingface.co/collections/allenai/sciriff-665f61ba7315e1d202e5f6bf) collection on Hugging Face consists of the following:
-
-- [SciRIFF](https://huggingface.co/datasets/allenai/SciRIFF): The full SciRIFF dataset as described in our [preprint](https://arxiv.org/abs/2406.07835).
-- [SciRIFF-train-mix](https://huggingface.co/datasets/allenai/SciRIFF-train-mix) The training mix used to train our SciTulu models; also described in the [preprint](https://arxiv.org/abs/2406.07835).
-- [SciTulu 7B](https://huggingface.co/allenai/scitulu-7b): Checkpoint for the SciTulu 7B model.
-- [SciTulu 70B](https://huggingface.co/allenai/scitulu-70b): Checkpoint for the SciTulu 70B model.
+  The result will go to `data/training_Mix/tulu_match_science_1000_eval_no.jsonl`, and corresponds to [allenai/SciRIFF-train-mix](https://huggingface.co/datasets/allenai/SciRIFF-train-mix) on Huggingface. To see all the options for training mixture creation, take a look at the `create_mixture` script.
