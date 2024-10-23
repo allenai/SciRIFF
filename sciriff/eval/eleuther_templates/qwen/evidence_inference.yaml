@@ -1,0 +1,5 @@
+include: _default_template.yaml
+task: evidence_inference
+process_docs: !function utils.filter_evidence_inference
+num_fewshot: 1
+fewshot_delimiter: "\n\n\n"

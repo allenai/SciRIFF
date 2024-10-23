@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: multicite_intent_classification
+process_docs: !function utils.filter_multicite_intent_classification

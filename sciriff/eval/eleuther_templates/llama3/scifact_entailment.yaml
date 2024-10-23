@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: scifact_entailment
+process_docs: !function utils.filter_scifact_entailment

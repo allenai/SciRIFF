@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: qasper_abstractive_qa
+process_docs: !function utils.filter_qasper_abstractive_qa

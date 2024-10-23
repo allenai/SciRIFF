@@ -1,0 +1,14 @@
+group:
+  - science_adapt
+dataset_path: allenai/SciRIFF
+dataset_name: "4096"
+validation_split: validation
+doc_to_text: "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\n{{ input }}<|im_end|>\n<|im_start|>assistant\n"
+doc_to_target: output
+target_delimiter: "\n"
+fewshot_delimiter: "\n\n--------------------\n\n"
+metric_list:
+  - metric: bleu
+    aggregation: mean
+    higher_is_better: true
+    hf_evaluate: true

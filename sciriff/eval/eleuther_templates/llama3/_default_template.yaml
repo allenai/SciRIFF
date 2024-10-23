@@ -1,0 +1,14 @@
+group:
+  - science_adapt
+dataset_path: allenai/SciRIFF
+dataset_name: "4096"
+validation_split: validation
+doc_to_text: "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nCutting Knowledge Date: December 2023\nToday Date: 26 Jul 2024\n\n<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{{ input }}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+doc_to_target: output
+target_delimiter: "\n"
+fewshot_delimiter: "\n\n--------------------\n\n"
+metric_list:
+  - metric: bleu
+    aggregation: mean
+    higher_is_better: true
+    hf_evaluate: true
