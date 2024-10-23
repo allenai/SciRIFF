@@ -63,6 +63,9 @@ def make_parser():
     parser.add_argument(
         "--limit", type=int, help="Max instances per task.", default=None
     )
+    parser.add_argument(
+        "--apply_chat_template", action='store_true', help="Apply chat template. Default is True."
+    )
     ####################
     # All arguments below this point only apply to Beaker batch jobs; ignore if not
     # AI2-internal.
@@ -180,7 +183,8 @@ def make_task_command(task_name, result_dir, args):
         # If there are already files here, skip it.
         return None
 
-    result_file = result_subdir / "eleuther.jsonl"
+    # result_file = result_subdir / "eleuther.jsonl"
+    result_file = result_subdir
 
     # Get the prompt directory.
     include_path = paths.EVAL_DIR / f"eleuther_templates/{args.chat_template}"
@@ -214,6 +218,12 @@ def make_task_command(task_name, result_dir, args):
     ]
     if args.limit is not None:
         command += ["--limit", args.limit]
+    
+    if args.apply_chat_template is True:
+        if args.chat_template != "general":
+            raise ValueError("Double template config detected. \
+                             If you think you are doing right, comment out at own risk.")
+        command += ["--apply_chat_template"]
 
     return [str(x) for x in command]
 

@@ -2,8 +2,9 @@ import numpy as np
 import evaluate
 import json
 import re
-from openai import OpenAI
+from openai import OpenAI, AzureOpenAI
 from tqdm import tqdm
+import time, os
 
 from sciriff.eval.metrics import util
 
@@ -13,7 +14,75 @@ from sciriff.eval.metrics import util
 # Call judge LLM to compare model answer to reference.
 
 CLIENT = OpenAI()
+# CLIENT = AzureOpenAI(
+#   azure_endpoint = "https://default-yalenlp.openai.azure.com/", 
+#   api_key="0928d74bbed94cd18922f7bc6bf45b4c",  
+#   api_version="2024-07-01-preview"
+# )
 
+
+def create_batch_file(instances):
+    tasks = []
+    for idx, instance in enumerate(instances):
+        prompt = make_prompt(instance)
+        task = {
+            "custom_id": f"task-{idx}",
+            "method": "POST",
+            "url": "/v1/chat/completions",
+            "body": {
+                # "model": "gpt-4o-mini-2024-07-18",
+                "model": "gpt-4o-2024-08-06",
+                # "model": "gpt-3.5-turbo-0125",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
+            }
+        }
+        tasks.append(task)
+
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    os.makedirs("./attributed_qa_eval-logs", exist_ok=True)
+    file_name = f"./attributed_qa_eval-logs/{timestr}-batch_tasks.jsonl"
+    with open(file_name, 'w') as file:
+        for task in tasks:
+            file.write(json.dumps(task) + '\n')
+    
+    return file_name
+
+def submit_batch_job(file_name):
+    batch_file = CLIENT.files.create(
+        file=open(file_name, "rb"),
+        purpose="batch"
+    )
+    
+    batch_job = CLIENT.batches.create(
+        input_file_id=batch_file.id,
+        endpoint="/v1/chat/completions",
+        completion_window="24h"
+    )
+    print(f"Submitted job ID: {batch_job.id}")
+    
+    return batch_job.id
+
+def get_batch_results(batch_job_id):
+    while True:
+        batch_job = CLIENT.batches.retrieve(batch_job_id)
+        if batch_job.status == "completed":
+            break
+        time.sleep(60)  # Wait for 1 minute before checking again
+
+    result_file_id = batch_job.output_file_id
+    result = CLIENT.files.content(result_file_id).content
+    
+    results = []
+    for line in result.decode().split('\n'):
+        if line:
+            results.append(json.loads(line))
+    
+    return results
 
 def call_lm_judge(prompt):
     chat_completion = CLIENT.chat.completions.create(
@@ -23,7 +92,7 @@ def call_lm_judge(prompt):
                 "content": prompt,
             },
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4o-2024-08-06",
     )
 
     return chat_completion.choices[0].message.content
@@ -67,7 +136,7 @@ def make_prompt(instance):
 
     Reference answer: {instance['ref']['answer']}
 
-    Model answer: {instance['pred']['answer']}
+    Model answer: {instance['pred']['answer'] if 'answer' in instance['pred'] else None}
     """
     prompt = prompt.replace("    ", "")
 
@@ -88,6 +157,24 @@ def extract_rating(response):
         print("Failed to extract LM judge rating")
         return 3
 
+
+def batch_lm_judge(instances, lm_judge_raw=None):
+    if not lm_judge_raw.exists():
+        file_name = create_batch_file(instances)
+        batch_job_id = submit_batch_job(file_name)
+        # results = get_batch_results(batch_job_id)
+        return None
+    else:
+        results = json.load(open(lm_judge_raw))
+    
+    ratings = []
+    for result in results:
+        # response = result['response']['choices'][0]['message']['content']
+        response = result['response']['body']['choices'][0]['message']['content']
+        rating = extract_rating(response)
+        ratings.append(rating)
+    
+    return ratings
 
 def lm_judge(instance):
     "Have a judge LM grade how well the answer matches reference, on a scale of 1 to 5."
@@ -120,7 +207,7 @@ class AttributedQAEval:
         else:
             raise Exception("Unexpected answer type")
 
-    def _evaluate_one(self, instance):
+    def _evaluate_one(self, instance, use_batch_api=False):
         # Compute answer token F1. Record cases where the answer failed and give no
         # credit.
 
@@ -148,7 +235,7 @@ class AttributedQAEval:
             self.scores["f1_answer_all"].append(f1_answer)
             self.scores["f1_answer_parsed"].append(f1_answer)
 
-            if self.do_lm_judge:
+            if self.do_lm_judge and not use_batch_api:
                 lm_judge_score = lm_judge(instance)
                 self.scores["lm_judge"].append(lm_judge_score)
 
@@ -182,7 +269,7 @@ class AttributedQAEval:
 
         return res
 
-    def evaluate(self, instances, lm_judge_file=None):
+    def evaluate(self, instances, lm_judge_file=None, lm_judge_raw_file=None, use_batch_api=False):
         self.lm_judge_file = lm_judge_file
         self.do_lm_judge = False
         if self.lm_judge_file is not None:
@@ -215,10 +302,14 @@ class AttributedQAEval:
 
         # Get token F1 scores for answer and evidence.
         for instance in instances:
-            self._evaluate_one(instance)
+            self._evaluate_one(instance, use_batch_api)
 
         # Dump LM judge scores so we don't need to recompute.
         if self.do_lm_judge:
+            if use_batch_api:
+                self.scores["lm_judge"] = batch_lm_judge(instances, lm_judge_raw=lm_judge_raw_file)
+                if not self.scores["lm_judge"]:
+                    return
             with open(self.lm_judge_file, ("w")) as f:
                 json.dump(self.scores["lm_judge"], f, indent=2)
 

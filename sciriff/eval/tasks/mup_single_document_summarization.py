@@ -54,7 +54,7 @@ class MUP(EvalTask):
 
         return instances, predictions, references
 
-    def evaluate(self):
+    def evaluate(self, use_batch_api):
 
         instances, predictions, references = self._initiate_instances()
         res = {}
@@ -79,11 +79,13 @@ class MUP(EvalTask):
         lm_judge_raw_results_file = self.eval_dir / f"lm_judge_{eval_type}_raw.json"
         lm_judge_agg_results_file = self.eval_dir / f"lm_judge_{eval_type}.json"
         self.lm_judge_file = lm_judge_agg_results_file
+        lm_judge_outputs = self.eval_dir / f"lm_judge_raw.json"
 
         # check if eval output file exists, if not - run evaluation
         if self.lm_judge_file.exists():
             llm_judge_results = json.load(open(self.lm_judge_file))
             res["lm_judge"][eval_type] = llm_judge_results
+            print("lm_judge_file found")
         else:
             evaluator = SummaryComparison()
             llm_judge_results = evaluator.evaluate(
@@ -91,8 +93,12 @@ class MUP(EvalTask):
                 lm_judge_raw_results_file,
                 lm_judge_agg_results_file,
                 eval_type,
-                n_sample_lookup[eval_type]
+                n_sample_lookup[eval_type],
+                lm_judge_outputs,
+                use_batch_api=use_batch_api
             )
+            if not llm_judge_results:
+                return
             res["lm_judge"][eval_type] = llm_judge_results
 
         self.dump_results(res)
