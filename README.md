@@ -38,7 +38,6 @@ Set `$PROJECT_ROOT` to the top-level directory where you pulled the code.
 
 ```bash
 conda env config vars set PROJECT_ROOT=[path-to-sciriff-code]
-export OPENAI_API_KEY=[your key]
 ```
 
 We use the Eleuther harness to handle inference for evaluation. For stability, it's best to install a specific commit, as follows:
