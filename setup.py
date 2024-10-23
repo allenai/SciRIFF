@@ -17,7 +17,7 @@ setup(
         "jsonschema==4.22.0",
         "beaker-py",
         "spacy==3.7.4",
-        "openai==1.33.0",
+        "openai==1.47.0",
         "thefuzz==0.20.0",
         "pytest",
         "tqdm"

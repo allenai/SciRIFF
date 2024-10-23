@@ -4,7 +4,10 @@ This repository contains code for the preprint [SciRIFF: A Resource to Enhance L
 
 The SciRIFF dataset, as well as the SciTulu models trained on SciRIFF, are available in the Hugging Face [SciRIFF collection](https://huggingface.co/collections/allenai/sciriff-665f61ba7315e1d202e5f6bf). This repository contains code to evaluate the SciTulu models on 9 held-out SciRIFF tasks, as well as details explaining how to use the data to train new models. Shortly, we will add templates for all tasks, as well as code to recreate the dataset using these templates.
 
-**Table of Contents**
+## Update 💥
+**[10/22/2024]** Added OpenAI batch API support for LM judge. Update `lm-eval` compatibility for latest model and default chat templates, e.g. Llama3.2 and Qwen2.5 families. 
+
+## Table of Contents
 
 - [The SciRIFF collection](#the-sciriff-collection)
 - [Setup](#setup)
@@ -35,6 +38,7 @@ Set `$PROJECT_ROOT` to the top-level directory where you pulled the code.
 
 ```bash
 conda env config vars set PROJECT_ROOT=[path-to-sciriff-code]
+export OPENAI_API_KEY=[your key]
 ```
 
 We use the Eleuther harness to handle inference for evaluation. For stability, it's best to install a specific commit, as follows:
@@ -42,7 +46,7 @@ We use the Eleuther harness to handle inference for evaluation. For stability, i
 ```bash
 git clone https://github.com/EleutherAI/lm-evaluation-harness.git
 cd lm-evaluation-harness
-git checkout e74ec96
+git checkout 543617f
 pip install -e .[vllm]
 ```
 
@@ -85,7 +89,8 @@ python script/eval/predict_eleuther.py \
   --chat_template tulu \
   --gpus 1 \
   --tasks science_adapt \
-  --result_base results/predictions
+  --result_base results/predictions \
+  # --apply_chat_template [enable default chat template from tokenizer. --chat_template should be set to 'general' if enabled to prevent double template]
 ```
 
 To make predictions with an API model, you can do:
@@ -107,8 +112,11 @@ Run `compute_science_metrics.py` to compute metrics based on the model predictio
 ```bash
 python script/eval/compute_science_metrics.py \
   --pred_dir results/predictions \
-  --metrics_dir results/metrics
+  --metrics_dir results/metrics \
+  # --use_batch_api [to allow batch API]
 ```
+
+For MUP and Qasper we use OpenAI API as LM judge. When batch API is enabled, batch job ID will be printed. Take this number down. You will need to retrieve the ouput file to corresponding director `results/metrics/by_model/{model_name}/{mup_single_document_summarization|qasper_abstractive_qa}/lm_judge_raw.json`. We offer tool scripts `batch_jobs.py`, `batch_cancel.py`, and `retrieval_batch_job.py` to help you manage status, retrieve output, and cancel jobs if needed. After retrieving outputs to right directory, rerun the `compute_science_metrics.py` command to generate full scores. 
 
 If you've run predictions `predict_eleuther.py` on multiple models, this will evaluate all models for which predictions are available under `results/predictions`. Metrics for each model will be saved to `results/metrics/by_model/{model_name}`; there will be a subfolder for each task including cleaned-up predictions and detailed metrics.
 

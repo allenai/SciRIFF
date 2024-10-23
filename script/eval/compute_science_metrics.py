@@ -43,6 +43,7 @@ class ScienceEvaluator:
             re.compile(args.model_pattern) if args.model_pattern is not None else None
         )
         self.model_name = args.model_name
+        self.use_batch_api = args.use_batch_api
 
     def make_summary_table(self, metrics_summary):
         "Make summary table of all results."
@@ -103,29 +104,35 @@ class ScienceEvaluator:
             return eval_task[0]
 
         old_dir = model_dir / "science_adapt"
+        old_dir = next(old_dir.iterdir())
 
         # Get list of eval tasks.
         eval_task_dir = paths.EVAL_DIR / "eleuther_templates/tulu"
         names = [p.stem for p in eval_task_dir.glob("*.yaml")]
         eval_tasks = [name for name in names if name != "_default_template"]
 
-        pred_files = [
-            f
-            for f in old_dir.iterdir()
-            if "pretrained__" in f.name or "model__" in f.name
-        ]
-        eleuther_file = old_dir / "eleuther.jsonl"
+        pred_files = []
+        for f in old_dir.iterdir():
+            if "pretrained__" in f.name or "model__" in f.name or "samples_" in f.name:
+                pred_files.append(f)
+            else:
+                result_file = old_dir / f.name
+        # result_file = old_dir / "eleuther.jsonl"
+        # result_file = next(old_dir.iterdir())
+
         for pred_file in pred_files:
             task_name = get_task_name(pred_file, eval_tasks)
             new_dir = model_dir / task_name
             new_dir.mkdir(exist_ok=True)
             pred_file.rename(new_dir / pred_file.name)
-            shutil.copyfile(eleuther_file, new_dir / "eleuther.jsonl")
+            shutil.copyfile(result_file, new_dir / "eleuther.jsonl")
 
-        eleuther_file.unlink()
-        old_dir.rmdir()
+        parent_dir = old_dir.parent
+        shutil.rmtree(parent_dir)
+        # result_file.unlink()
+        # old_dir.rmdir()
 
-    def eval_one_model(self, model_dir):
+    def eval_one_model(self, model_dir, use_batch_api=False):
         model_name = model_dir.name
 
         if [x.name for x in model_dir.iterdir()] == ["science_adapt"]:
@@ -153,10 +160,16 @@ class ScienceEvaluator:
             # If there's already a metrics file, skip unless `--clobber` is given.
             metrics_flat_file = evaluator.eval_dir / "metrics_flat.json"
             if (not metrics_flat_file.exists()) or self.clobber:
-                evaluator.evaluate()
+                if task_name in ("mup_single_document_summarization", "qasper_abstractive_qa"):
+                    evaluator.evaluate(use_batch_api)
+                else:
+                    evaluator.evaluate()
 
             # Add to spreadsheet of metrics for this task specifically.
-            metrics_flat = json.load(open(metrics_flat_file))
+            try:
+                metrics_flat = json.load(open(metrics_flat_file))
+            except:
+                continue
             metrics_flat["model"] = model_dir.name
             if task_name in self.metrics_flat:
                 self.metrics_flat[task_name].append(metrics_flat)
@@ -189,7 +202,7 @@ class ScienceEvaluator:
         # Evaluate only a single model if requested.
         if self.model_name is not None:
             model_dir = self.pred_dir / self.model_name
-            self.eval_one_model(model_dir)
+            self.eval_one_model(model_dir, use_batch_api=self.use_batch_api)
             return
 
         # Otherwise, run evals for each task and model and dump results.
@@ -200,7 +213,7 @@ class ScienceEvaluator:
                     continue
 
             print(model_dir.name)
-            self.eval_one_model(model_dir)
+            self.eval_one_model(model_dir, use_batch_api=self.use_batch_api)
 
         self.make_task_tables(self.metrics_flat)
         self.make_summary_table(self.metrics_summary)
@@ -240,6 +253,11 @@ def make_parser():
         type=str,
         help="If given, only evaluate the model with this name and don't make summary table.",
         default=None,
+    )
+    parser.add_argument(
+        "--use_batch_api",
+        action="store_true",
+        help="If given, evaluate with OpenAI batch job API.",
     )
 
     return parser

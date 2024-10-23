@@ -26,7 +26,7 @@ class EvalTask:
         pred_file = [
             x
             for x in wkdir.iterdir()
-            if "pretrained__" in x.name or "model__" in x.name
+            if "pretrained__" in x.name or "model__" in x.name or "samples_" in x.name
         ]
         if len(pred_file) != 1:
             raise Exception(
@@ -36,7 +36,16 @@ class EvalTask:
 
     def load_predictions(self, fname=None):
         fname = self.pred_file if fname is None else fname
-        preds = json.load(open(fname))
+        
+        # preds = json.load(open(fname))  <-- Deprecated
+        preds = []
+    
+        # Open the file and read it line by line
+        with open(fname, 'r') as f:
+            for line in f:
+                # Each line is a JSON object, so load it and append to the list
+                preds.append(json.loads(line))
+
         if self.max_instances is not None:
             preds = preds[: self.max_instances]
 
@@ -48,6 +57,10 @@ class EvalTask:
         bleu_scorer = evaluate.load("bleu")
         predictions = [entry["pred"] for entry in raw_predictions]
         references = [entry["ref"] for entry in raw_predictions]
+        
+        # print(self.eval_dir)
+        # from IPython import embed
+        # embed()
 
         res = bleu_scorer.compute(predictions=predictions, references=references)
         return res["bleu"]
@@ -77,7 +90,8 @@ class EvalTask:
         entries = self.load_predictions(fname)
         raw_predictions = []
         for entry in entries:
-            prompt = entry["arguments"][0][0]
+            # prompt = entry["arguments"][0][0] <--- Deprecated
+            prompt = entry["arguments"]["gen_args_0"]["arg_0"]
             ref = entry["target"]
             # Tulu models usually end with `</s>`; strip it off.
             pred = entry["filtered_resps"][0].strip("</s>")
