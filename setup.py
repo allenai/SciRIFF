@@ -20,7 +20,8 @@ setup(
         "openai==1.47.0",
         "thefuzz==0.20.0",
         "pytest",
-        "tqdm"
+        "tqdm",
+        "lm-eval==0.44"
     ],
     include_package_data=True,
 )
