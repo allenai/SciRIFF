@@ -21,7 +21,7 @@ setup(
         "thefuzz==0.20.0",
         "pytest",
         "tqdm",
-        "lm-eval==0.4.4"
+        "lm-eval @ git+https://github.com/EleutherAI/lm-evaluation-harness.git@543617f#egg=lm-eval[vllm]"
     ],
     include_package_data=True,
 )
