@@ -115,7 +115,7 @@ python script/eval/compute_science_metrics.py \
   # --use_batch_api [to allow batch API]
 ```
 
-For MUP and Qasper we use OpenAI API as LM judge. When batch API is enabled, batch job ID will be printed. Take this number down. You will need to retrieve the ouput file to corresponding director `results/metrics/by_model/{model_name}/{mup_single_document_summarization|qasper_abstractive_qa}/lm_judge_raw.json`. We offer tool scripts `batch_jobs.py`, `batch_cancel.py`, and `retrieval_batch_job.py` to help you manage status, retrieve output, and cancel jobs if needed. After retrieving outputs to right directory, rerun the `compute_science_metrics.py` command to generate full scores. 
+For MUP and Qasper we use OpenAI API as LM judge. When batch API is enabled, batch job ID will be stored at `results/metrics/by_model/{model_name}/{mup_single_document_summarization|qasper_abstractive_qa}/lm_judge_mapping.json`. We offer tool scripts `batch_jobs.py`, `batch_cancel.py`, and `retrieval_batch_job.py` to help you monitor status, retrieve specific job outputs, and cancel jobs if needed. When batch job is finished, rerun the `compute_science_metrics.py` command to retrieve job results and generate full scores. 
 
 If you've run predictions `predict_eleuther.py` on multiple models, this will evaluate all models for which predictions are available under `results/predictions`. Metrics for each model will be saved to `results/metrics/by_model/{model_name}`; there will be a subfolder for each task including cleaned-up predictions and detailed metrics.
 

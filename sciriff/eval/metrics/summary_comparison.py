@@ -1,6 +1,6 @@
 import json
 import re
-from openai import OpenAI
+from openai import OpenAI, AzureOpenAI
 import openai
 import random
 import time, os
@@ -182,14 +182,49 @@ def parse_model_response(response, instance, eval_type):
             instance["decision_explanation"] = explanation
         else:
             instance["decision"] = "error"
+    
+    elif "Rating:" in response:
+        decision = response[response.find("Rating:") + 7 :].strip()
+        explanation = (
+            response[: response.find("Rating")].replace("Explanation:", "").strip()
+        )
+        if eval_type == "model_comparison" and decision in ["1", "2", "tie"]:
+            pred_first = instance["pred_first_in_prompt"]
+            explanation = decode_summary_order(explanation, pred_first)
+            instance["decision_explanation"] = explanation
+            if decision == "tie":
+                instance["decision"] = "tie"
+            else:
+                instance["decision"] = (
+                    "win"
+                    if (
+                        (decision == "1" and pred_first)
+                        or (decision == "2" and not pred_first)
+                    )
+                    else "lose"
+                )
+        elif eval_type == "reference_comparison" and decision in [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+        ]:
+            # Convert to an int between 0 and 1 so we can compare.
+            instance["decision"] = (int(decision) - 1) / 4
+            instance["decision_explanation"] = explanation
+        else:
+            instance["decision"] = "error"
     else:
         instance["decision"] = "error"
 
 
-def batch_lm_judge(instances, eval_type, lm_judge_raw=None):
+def batch_lm_judge(instances, eval_type, lm_judge_raw=None, lm_judge_mapping=None):
     if not lm_judge_raw.exists():
         file_name = create_batch_file(instances, eval_type)
         batch_job_id = submit_batch_job(file_name)
+        with open(lm_judge_mapping, 'w') as f:
+            json.dump({'batch_id': batch_job_id}, f)
         # results = get_batch_results(batch_job_id)
         return None
     else:
@@ -296,7 +331,7 @@ class SummaryComparison:
 
         return instances
 
-    def _batch_evaluate_reference_comparison(self, instances, lm_judge_raw):
+    def _batch_evaluate_reference_comparison(self, instances, lm_judge_raw, lm_judge_mapping):
         "Have a judge LM grade how well the model's summary matches reference summary, on a scale of 1 to 5."
         self.scores = {"ratings": []}
 
@@ -310,7 +345,12 @@ class SummaryComparison:
             # results = lm_judge(instance, eval_type="reference_comparison")
             # if results:
             #     self.scores["ratings"].append(results)
-        results = batch_lm_judge(instances.values(), eval_type="reference_comparison", lm_judge_raw=lm_judge_raw)
+        results = batch_lm_judge(
+            instances.values(), 
+            eval_type="reference_comparison", 
+            lm_judge_raw=lm_judge_raw, 
+            lm_judge_mapping=lm_judge_mapping
+        )
         if results:
             # self.scores["ratings"].append(results)
             self.scores["ratings"] = results
@@ -360,6 +400,7 @@ class SummaryComparison:
         eval_type,
         n_samples,
         lm_judge_raw,
+        lm_judge_mapping,
         use_batch_api=False
     ):
 
@@ -378,7 +419,7 @@ class SummaryComparison:
             filtered_instances = self._evaluate_model_comparison(filtered_instances)
         elif eval_type == "reference_comparison":
             if use_batch_api:
-                filtered_instances = self._batch_evaluate_reference_comparison(filtered_instances, lm_judge_raw)
+                filtered_instances = self._batch_evaluate_reference_comparison(filtered_instances, lm_judge_raw, lm_judge_mapping)
             else:
                 filtered_instances = self._evaluate_reference_comparison(filtered_instances)
         
