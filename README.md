@@ -5,7 +5,7 @@ This repository contains code for the preprint [SciRIFF: A Resource to Enhance L
 The SciRIFF dataset, as well as the SciTulu models trained on SciRIFF, are available in the Hugging Face [SciRIFF collection](https://huggingface.co/collections/allenai/sciriff-665f61ba7315e1d202e5f6bf). This repository contains code to evaluate the SciTulu models on 9 held-out SciRIFF tasks, as well as details explaining how to use the data to train new models. Shortly, we will add templates for all tasks, as well as code to recreate the dataset using these templates.
 
 ## Update 💥
-**[10/22/2024]** Improve OpenAI batch API support. Fixed bugs during prediction due to vllm update. 
+**[12/09/2024]** Improve OpenAI batch API support. Fixed bugs during prediction due to vllm update. 
 **[10/22/2024]** Added OpenAI batch API support for LM judge. Update `lm-eval` compatibility for latest model and default chat templates, e.g. Llama3.2 and Qwen2.5 families. 
 
 ## Table of Contents
