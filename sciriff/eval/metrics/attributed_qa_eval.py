@@ -7,19 +7,14 @@ from tqdm import tqdm
 import time, os
 
 from sciriff.eval.metrics import util
+from sciriff.eval.metrics.lm_judge import retrieve_batch_job_results, fetch_batch_file
 
 
 ########################################
 
 # Call judge LLM to compare model answer to reference.
-
+API_KEY = os.getenv('OPENAI_API_KEY')
 CLIENT = OpenAI()
-# CLIENT = AzureOpenAI(
-#   azure_endpoint = "https://default-yalenlp.openai.azure.com/", 
-#   api_key="0928d74bbed94cd18922f7bc6bf45b4c",  
-#   api_version="2024-07-01-preview"
-# )
-
 
 def create_batch_file(instances):
     tasks = []
@@ -100,7 +95,7 @@ def call_lm_judge(prompt):
 
 def make_prompt(instance):
     lines = instance["prompt"].split("\n")
-    title = lines[5]
+    title = lines[lines.index("----------------------------------------") + 1]
     question = [line for line in lines if re.match("^Question:", line)]
     if len(question) != 1:
         raise ValueError("Couldn't find the question.")
@@ -158,10 +153,12 @@ def extract_rating(response):
         return 3
 
 
-def batch_lm_judge(instances, lm_judge_raw=None):
+def batch_lm_judge(instances, lm_judge_raw=None, lm_judge_mapping=None):
     if not lm_judge_raw.exists():
         file_name = create_batch_file(instances)
         batch_job_id = submit_batch_job(file_name)
+        with open(lm_judge_mapping, 'w') as f:
+            json.dump({'batch_id': batch_job_id}, f)
         # results = get_batch_results(batch_job_id)
         return None
     else:
@@ -269,7 +266,7 @@ class AttributedQAEval:
 
         return res
 
-    def evaluate(self, instances, lm_judge_file=None, lm_judge_raw_file=None, use_batch_api=False):
+    def evaluate(self, instances, lm_judge_file=None, lm_judge_raw_file=None, lm_judge_mapping=None, use_batch_api=False):
         self.lm_judge_file = lm_judge_file
         self.do_lm_judge = False
         if self.lm_judge_file is not None:
@@ -305,9 +302,14 @@ class AttributedQAEval:
             self._evaluate_one(instance, use_batch_api)
 
         # Dump LM judge scores so we don't need to recompute.
+        if lm_judge_raw_file and not lm_judge_raw_file.exists() and lm_judge_mapping.exists():
+            with open(lm_judge_mapping, 'r') as f:
+                batcth_id = json.load(f)['batch_id']
+            file_id = fetch_batch_file(API_KEY, batcth_id)
+            retrieve_batch_job_results(file_id, lm_judge_raw_file)
         if self.do_lm_judge:
             if use_batch_api:
-                self.scores["lm_judge"] = batch_lm_judge(instances, lm_judge_raw=lm_judge_raw_file)
+                self.scores["lm_judge"] = batch_lm_judge(instances, lm_judge_raw=lm_judge_raw_file, lm_judge_mapping=lm_judge_mapping)
                 if not self.scores["lm_judge"]:
                     return
             with open(self.lm_judge_file, ("w")) as f:

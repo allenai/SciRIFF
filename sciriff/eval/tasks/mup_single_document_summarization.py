@@ -1,10 +1,14 @@
 from ._base import EvalTask
-from sciriff.eval.metrics.summary_comparison import SummaryComparison
 import evaluate
 from sciriff.lib import util
-import json
+import json, os
 from copy import deepcopy
 
+from sciriff.eval.metrics.summary_comparison import SummaryComparison
+from sciriff.eval.metrics.lm_judge import retrieve_batch_job_results, fetch_batch_file
+
+
+API_KEY = os.getenv('OPENAI_API_KEY')
 
 class MUP(EvalTask):
     @staticmethod
@@ -80,6 +84,7 @@ class MUP(EvalTask):
         lm_judge_agg_results_file = self.eval_dir / f"lm_judge_{eval_type}.json"
         self.lm_judge_file = lm_judge_agg_results_file
         lm_judge_outputs = self.eval_dir / f"lm_judge_raw.json"
+        lm_judge_mapping = self.eval_dir / "lm_judge_mapping.json"
 
         # check if eval output file exists, if not - run evaluation
         if self.lm_judge_file.exists():
@@ -87,6 +92,11 @@ class MUP(EvalTask):
             res["lm_judge"][eval_type] = llm_judge_results
             print("lm_judge_file found")
         else:
+            if lm_judge_mapping.exists():
+                with open(lm_judge_mapping, 'r') as f:
+                    batcth_id = json.load(f)['batch_id']
+                file_id = fetch_batch_file(API_KEY, batcth_id)
+                retrieve_batch_job_results(file_id, lm_judge_outputs)
             evaluator = SummaryComparison()
             llm_judge_results = evaluator.evaluate(
                 deepcopy(instances),
@@ -95,6 +105,7 @@ class MUP(EvalTask):
                 eval_type,
                 n_sample_lookup[eval_type],
                 lm_judge_outputs,
+                lm_judge_mapping=lm_judge_mapping,
                 use_batch_api=use_batch_api
             )
             if not llm_judge_results:

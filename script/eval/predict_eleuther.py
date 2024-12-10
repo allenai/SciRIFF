@@ -259,6 +259,7 @@ def kickoff(args):
     if not args.beaker:
         for task_spec in experiment_tasks:
             print(f"Running {task_spec.name}.")
+            print(f"Running {task_spec.command}.")
             subprocess.run(task_spec.command)
 
     # Otherwise kick off batch jobs.

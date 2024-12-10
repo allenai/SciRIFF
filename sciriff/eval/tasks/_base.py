@@ -28,7 +28,16 @@ class EvalTask:
             for x in wkdir.iterdir()
             if "pretrained__" in x.name or "model__" in x.name or "samples_" in x.name
         ]
-        if len(pred_file) != 1:
+        # vllm might output in different file structure
+        if len(pred_file) < 1:
+            subdirs = [d for d in wkdir.iterdir() if d.is_dir() and not d.name.startswith('.')]
+            if len(subdirs) == 1:
+                pred_file = [
+                    x
+                    for x in subdirs[0].iterdir()
+                    if "pretrained__" in x.name or "model__" in x.name or "samples_" in x.name
+                ]
+        elif len(pred_file) > 1:
             raise Exception(
                 f"Found multiple files in {wkdir} that could have predictions."
             )
