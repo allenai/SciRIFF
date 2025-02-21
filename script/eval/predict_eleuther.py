@@ -27,6 +27,12 @@ def make_parser():
         want to use (e.g. `gpt-4-turbo`)""",
     )
     parser.add_argument(
+        "--tokenizer",
+        help="If given, use specified tokenizer from HF",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
         "--model_display_name",
         type=str,
         help="""If given, use this name as the output directory for predictions.
@@ -107,6 +113,11 @@ def make_parser():
         help="Priority for Beaker jobs.",
         type=str,
         default="normal",
+    )
+    parser.add_argument(
+        "--max_gen_toks",
+        type=int,
+        default=2048,
     )
 
     return parser
@@ -191,7 +202,10 @@ def make_task_command(task_name, result_dir, args):
 
     # Construct model args.
     if args.model == "vllm":
-        model_args = f"pretrained={args.model_name},tensor_parallel_size={args.gpus},dtype=float16"
+        if args.tokenizer:
+            model_args = f"pretrained={args.model_name},tensor_parallel_size={args.gpus},trust_remote_code=true,dtype=float16,tokenizer={args.tokenizer}"
+        else:
+            model_args = f"pretrained={args.model_name},tensor_parallel_size={args.gpus},trust_remote_code=true,dtype=float16"
     else:
         model_args = f"model={args.model_name}"
 
@@ -206,7 +220,7 @@ def make_task_command(task_name, result_dir, args):
         "--model_args",
         model_args,
         "--gen_kwargs",
-        "max_gen_toks=1024",  # TODO(dwadden) Should make this modifiable.
+        f"max_gen_toks={args.max_gen_toks}",  # TODO(dwadden) Should make this modifiable.
         "--tasks",
         task_name,
         "--batch_size",
@@ -220,7 +234,7 @@ def make_task_command(task_name, result_dir, args):
         command += ["--limit", args.limit]
     
     if args.apply_chat_template is True:
-        if args.chat_template != "general":
+        if not "general" in args.chat_template and not "mup" in args.chat_template:
             raise ValueError("Double template config detected. \
                              If you think you are doing right, comment out at own risk.")
         command += ["--apply_chat_template"]

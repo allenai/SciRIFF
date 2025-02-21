@@ -29,6 +29,7 @@ def fetch_batch_details(api_key, batch_id):
         print(batch)
     else:
         print("Failed to fetch batch details")
+        print(response)
 
 import os
 

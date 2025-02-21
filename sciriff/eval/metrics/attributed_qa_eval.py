@@ -16,10 +16,10 @@ from sciriff.eval.metrics.lm_judge import retrieve_batch_job_results, fetch_batc
 API_KEY = os.getenv('OPENAI_API_KEY')
 CLIENT = OpenAI()
 
-def create_batch_file(instances):
+def create_batch_file(instances, eval_type):
     tasks = []
     for idx, instance in enumerate(instances):
-        prompt = make_prompt(instance)
+        prompt = make_prompt(instance, eval_type)
         task = {
             "custom_id": f"task-{idx}",
             "method": "POST",
@@ -93,7 +93,7 @@ def call_lm_judge(prompt):
     return chat_completion.choices[0].message.content
 
 
-def make_prompt(instance):
+def make_prompt(instance, eval_type):
     lines = instance["prompt"].split("\n")
     title = lines[lines.index("----------------------------------------") + 1]
     question = [line for line in lines if re.match("^Question:", line)]
@@ -102,37 +102,62 @@ def make_prompt(instance):
     question = question[0].replace("Question: ", "")
     excerpts = "\n".join(instance["ref"]["evidence"])
 
-    prompt = f"""\
-    Below you will be shown a paper title, an excerpt from the paper, and a question
-    about the excerpt. Then, you will be given a reference answer written by an expert,
-    followed by a model-generated answer. Please rate the similarity of the model answer
-    to the reference on a 1-5 scale. Do not penalize the model for including additional
-    information that is not in the reference.
+    if eval_type == "reference_comparison":
+        prompt = f"""\
+        Below you will be shown an excerpt from the paper, and a question
+        about the excerpt. Then, you will be given a reference answer written by an expert,
+        followed by a model-generated answer. Please rate the similarity of the model answer
+        to the reference on a 1-5 scale. Do not penalize the model for including additional
+        information that is not in the reference.
 
-    - 5: The model answer includes all important information found in the reference.
-    - 3: The model answer is somewhat similar to the reference, but not completely accurate.
-    - 1: The model answer is totally inaccurate or is unrelated to the reference.
-    In your response, give an explanation for your rating, followed by your rating.
+        - 5: The model answer includes all important information found in the reference.
+        - 3: The model answer is somewhat similar to the reference, but not completely accurate.
+        - 1: The model answer is totally inaccurate or is unrelated to the reference.
+        In your response, give an explanation for your rating, followed by your rating.
 
-    Response format:
-    Explanation: Your explanation here.
-    Rating: A single integer between 1 and 5.
+        Response format:
+        Explanation: Your explanation here.
+        Rating: A single integer between 1 and 5.
 
-    _Do not_ include any additional text after the rating.
+        _Do not_ include any additional text after the rating.
 
-    Here's the article, question, and answers:
+        Here's the article, question, and answers:
 
-    Title: {title}
+        Excerpts:
+        {excerpts}
 
-    Excerpts:
-    {excerpts}
+        Question: {question}
 
-    Question: {question}
+        Reference answer: {instance['ref']['answer']}
 
-    Reference answer: {instance['ref']['answer']}
+        Model answer: {instance['pred']['answer'] if isinstance(instance['pred'], dict) and 'answer' in instance['pred'] else None}
+        """
+    else:
+        prompt = f"""\
+        Below you will be shown an excerpt from the paper, and a question
+        about the excerpt. Then, you will be given a model-generated answer. Please rate 
+        the model answer on a 1-5 scale.
 
-    Model answer: {instance['pred']['answer'] if 'answer' in instance['pred'] else None}
-    """
+        - 5: The model answer includes all important information.
+        - 3: The model answer includes important information, but not completely accurate.
+        - 1: The model answer is totally inaccurate or is unrelated.
+        In your response, give an explanation for your rating, followed by your rating.
+
+        Response format:
+        Explanation: Your explanation here.
+        Rating: A single integer between 1 and 5.
+
+        _Do not_ include any additional text after the rating.
+
+        Here's the article, question, and answers:
+
+        Excerpts:
+        {excerpts}
+
+        Question: {question}
+
+        Model answer: {instance['pred']['answer'] if 'answer' in instance['pred'] else None}
+        """
     prompt = prompt.replace("    ", "")
 
     return prompt
@@ -153,9 +178,9 @@ def extract_rating(response):
         return 3
 
 
-def batch_lm_judge(instances, lm_judge_raw=None, lm_judge_mapping=None):
+def batch_lm_judge(instances, lm_judge_raw=None, lm_judge_mapping=None, eval_type="reference_comparison"):
     if not lm_judge_raw.exists():
-        file_name = create_batch_file(instances)
+        file_name = create_batch_file(instances, eval_type)
         batch_job_id = submit_batch_job(file_name)
         with open(lm_judge_mapping, 'w') as f:
             json.dump({'batch_id': batch_job_id}, f)
@@ -266,7 +291,7 @@ class AttributedQAEval:
 
         return res
 
-    def evaluate(self, instances, lm_judge_file=None, lm_judge_raw_file=None, lm_judge_mapping=None, use_batch_api=False):
+    def evaluate(self, instances, lm_judge_file=None, lm_judge_raw_file=None, lm_judge_mapping=None, use_batch_api=False, eval_type="reference_comparison"):
         self.lm_judge_file = lm_judge_file
         self.do_lm_judge = False
         if self.lm_judge_file is not None:
@@ -309,7 +334,7 @@ class AttributedQAEval:
             retrieve_batch_job_results(file_id, lm_judge_raw_file)
         if self.do_lm_judge:
             if use_batch_api:
-                self.scores["lm_judge"] = batch_lm_judge(instances, lm_judge_raw=lm_judge_raw_file, lm_judge_mapping=lm_judge_mapping)
+                self.scores["lm_judge"] = batch_lm_judge(instances, lm_judge_raw=lm_judge_raw_file, lm_judge_mapping=lm_judge_mapping, eval_type=eval_type)
                 if not self.scores["lm_judge"]:
                     return
             with open(self.lm_judge_file, ("w")) as f:

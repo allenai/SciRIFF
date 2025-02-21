@@ -26,10 +26,16 @@ class MUP(EvalTask):
 
     @staticmethod
     def make_summary_metrics(res):
-        return {
-            "lm_judge_reference": res["lm_judge"]["reference_comparison"]["avg_rating"],
-            "rouge": res["rouge"]["rougeL"],
-        }
+        if "reference_comparison" in res["lm_judge"]:
+            return {
+                "lm_judge_reference": res["lm_judge"]["reference_comparison"]["avg_rating"],
+                "rouge": res["rouge"]["rougeL"],
+            }
+        else:
+            return {
+                "lm_judge_reference": res["lm_judge"]["reference_free"]["avg_rating"],
+                "rouge": res["rouge"]["rougeL"],
+            }
 
     def _initiate_instances(self):
         # NOTE We used to do a comparison using an LM judge to compare each model
@@ -58,7 +64,7 @@ class MUP(EvalTask):
 
         return instances, predictions, references
 
-    def evaluate(self, use_batch_api):
+    def evaluate(self, use_batch_api, eval_type="reference_comparison"):
 
         instances, predictions, references = self._initiate_instances()
         res = {}
@@ -74,10 +80,11 @@ class MUP(EvalTask):
         # use model judge to compare `predictions` against `baselines` and against gold standard summaries
         # Number of samples to evaluate for each task; use more for the ref comparison since it uses gpt-3.5.
         n_sample_lookup = {"model_comparison": 50,
-                           "reference_comparison": 100}
+                           "reference_comparison": 100, 
+                           "reference_free": 500
+                           }
 
         res["lm_judge"] = {}
-        eval_type = "reference_comparison"
 
         # set output directories
         lm_judge_raw_results_file = self.eval_dir / f"lm_judge_{eval_type}_raw.json"

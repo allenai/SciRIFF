@@ -44,6 +44,7 @@ class ScienceEvaluator:
         )
         self.model_name = args.model_name
         self.use_batch_api = args.use_batch_api
+        self.eval_type = args.lm_judge_eval_type
 
     def make_summary_table(self, metrics_summary):
         "Make summary table of all results."
@@ -154,14 +155,21 @@ class ScienceEvaluator:
             # as a baseline for GPT-judge evals; reference-based evals seem fine so we
             # don't compare against a baseline model anymore.
             evaluator = eval_tasks.registry.get(task_name, EvalTask)(
-                pred_dir, eval_dir, baseline_dir=None, max_instances=self.max_instances
+                pred_dir, 
+                eval_dir, 
+                baseline_dir=None, 
+                max_instances=self.max_instances, 
+                # lm_eval_type=self.eval_type
             )
 
             # If there's already a metrics file, skip unless `--clobber` is given.
             metrics_flat_file = evaluator.eval_dir / "metrics_flat.json"
             if (not metrics_flat_file.exists()) or self.clobber:
                 if task_name in ("mup_single_document_summarization", "qasper_abstractive_qa"):
-                    evaluator.evaluate(use_batch_api)
+                    # if task_name == "mup_single_document_summarization":
+                    evaluator.evaluate(use_batch_api, eval_type=self.eval_type)
+                    # else:
+                    #     evaluator.evaluate(use_batch_api, )
                 else:
                     evaluator.evaluate()
 
@@ -258,6 +266,11 @@ def make_parser():
         "--use_batch_api",
         action="store_true",
         help="If given, evaluate with OpenAI batch job API.",
+    )
+    parser.add_argument(
+        "--lm_judge_eval_type",
+        default="reference_comparison",
+        help="LM judge by reference_comparison or reference_free.",
     )
 
     return parser

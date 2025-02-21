@@ -6,7 +6,8 @@ import random
 import time, os
 
 # Call judge LLM to compare model answer to reference.
-CLIENT = OpenAI()
+API_KEY = os.getenv('OPENAI_API_KEY')
+CLIENT = OpenAI(api_key=API_KEY)
 
 
 def create_batch_file(instances, eval_type):
@@ -98,6 +99,53 @@ def make_prompt(instance, eval_type):
         Summary2:
         {instance['baseline'] if pred_first else instance['prediction']}
         """
+    elif eval_type == "reference_free":
+        if 'title' in instance:
+            prompt = f"""Below you will be shown the title and body text of a computer
+            science research paper. Then, you will be given a model-generated summary.
+            Please rate the model summary on an overall 1-5 scale. 
+
+            - 5: The model answer includes all important information.
+            - 3: The model answer includes important information, but not completely accurate.
+            - 1: The model answer is totally inaccurate or is unrelated.
+            In your response, give an explanation for your rating, followed by your rating.
+
+            Response format:
+            Explanation: "Your explanation here"
+            Decision: A single integer between 1 and 5.
+            _Do not_ include any additional text after the rating.
+
+            Here's the paper title and body text:
+            Title: {instance['title']}
+
+            Body text:
+            {instance['body_text']}
+
+            Model summary:
+            {instance['prediction']}
+            """
+        else:
+            prompt = f"""Below you will be shown the body text of a computer
+            science research paper. Then, you will be given a model-generated summary.
+            Please rate the model summary on an overall 1-5 scale. 
+
+            - 5: The model answer includes all important information.
+            - 3: The model answer includes important information, but not completely accurate.
+            - 1: The model answer is totally inaccurate or is unrelated.
+            In your response, give an explanation for your rating, followed by your rating.
+
+            Response format:
+            Explanation: "Your explanation here"
+            Decision: A single integer between 1 and 5.
+            _Do not_ include any additional text after the rating.
+
+            Here's the body text:
+            Body text:
+            {instance['body_text']}
+
+            Model summary:
+            {instance['prediction']}
+            """
     else:
         prompt = f"""Below you will be shown the title and body text of a computer
         science research paper. Then, you will be given a reference summary of that
@@ -170,7 +218,7 @@ def parse_model_response(response, instance, eval_type):
                     )
                     else "lose"
                 )
-        elif eval_type == "reference_comparison" and decision in [
+        elif (eval_type == "reference_comparison" or eval_type == "reference_free") and decision in [
             "1",
             "2",
             "3",
@@ -203,7 +251,7 @@ def parse_model_response(response, instance, eval_type):
                     )
                     else "lose"
                 )
-        elif eval_type == "reference_comparison" and decision in [
+        elif (eval_type == "reference_comparison" or eval_type == "reference_free") and decision in [
             "1",
             "2",
             "3",
@@ -244,7 +292,7 @@ def batch_lm_judge(instances, eval_type, lm_judge_raw=None, lm_judge_mapping=Non
         if eval_type == "model_comparison":
             results_encoding = {"win": (1, 1), "tie": (0, 1), "lose": (0, 0)}
             ratings.append(results_encoding[result])
-        elif eval_type == "reference_comparison":
+        elif eval_type == "reference_comparison" or eval_type == "reference_free":
             ratings.append(result)
     return ratings
 
@@ -331,7 +379,7 @@ class SummaryComparison:
 
         return instances
 
-    def _batch_evaluate_reference_comparison(self, instances, lm_judge_raw, lm_judge_mapping):
+    def _batch_evaluate_reference_comparison(self, instances, lm_judge_raw, lm_judge_mapping, eval_type="reference_comparison"):
         "Have a judge LM grade how well the model's summary matches reference summary, on a scale of 1 to 5."
         self.scores = {"ratings": []}
 
@@ -347,7 +395,7 @@ class SummaryComparison:
             #     self.scores["ratings"].append(results)
         results = batch_lm_judge(
             instances.values(), 
-            eval_type="reference_comparison", 
+            eval_type=eval_type, 
             lm_judge_raw=lm_judge_raw, 
             lm_judge_mapping=lm_judge_mapping
         )
@@ -417,9 +465,9 @@ class SummaryComparison:
         # run evaluation based on eval_type
         if eval_type == "model_comparison":
             filtered_instances = self._evaluate_model_comparison(filtered_instances)
-        elif eval_type == "reference_comparison":
+        elif eval_type == "reference_comparison" or eval_type == "reference_free":
             if use_batch_api:
-                filtered_instances = self._batch_evaluate_reference_comparison(filtered_instances, lm_judge_raw, lm_judge_mapping)
+                filtered_instances = self._batch_evaluate_reference_comparison(filtered_instances, lm_judge_raw, lm_judge_mapping, eval_type)
             else:
                 filtered_instances = self._evaluate_reference_comparison(filtered_instances)
         

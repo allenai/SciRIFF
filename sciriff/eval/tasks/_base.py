@@ -46,7 +46,7 @@ class EvalTask:
     def load_predictions(self, fname=None):
         fname = self.pred_file if fname is None else fname
         
-        # preds = json.load(open(fname))  <-- Deprecated
+        # preds = json.load(open(fname)) # <-- Deprecated
         preds = []
     
         # Open the file and read it line by line
@@ -99,7 +99,7 @@ class EvalTask:
         entries = self.load_predictions(fname)
         raw_predictions = []
         for entry in entries:
-            # prompt = entry["arguments"][0][0] <--- Deprecated
+            # prompt = entry["arguments"][0][0] # <--- Deprecated
             prompt = entry["arguments"]["gen_args_0"]["arg_0"]
             ref = entry["target"]
             # Tulu models usually end with `</s>`; strip it off.

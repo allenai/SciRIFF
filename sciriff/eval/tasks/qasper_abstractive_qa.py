@@ -37,13 +37,13 @@ class Qasper(JSONTask):
             "f1_evidence": res["results"]["all"]["scores"]["f1_evidence_all"],
         }
 
-    def evaluate(self, use_batch_api=False):
+    def evaluate(self, use_batch_api=False, eval_type="reference_comparison"):
         res = {}
         predictions, json_counts = self.parse_predictions()
 
-        lm_judge_file = self.eval_dir / "lm_judge.json"
-        lm_judge_raw_file = self.eval_dir / "lm_judge_raw.json"
-        lm_judge_mapping = self.eval_dir / "lm_judge_mapping.json"
+        lm_judge_file = self.eval_dir / f"lm_judge.json"
+        lm_judge_raw_file = self.eval_dir / f"lm_judge_raw.json"
+        lm_judge_mapping = self.eval_dir / f"lm_judge_mapping.json"
         evaluator = AttributedQAEval()
 
         res["results"] = {}
@@ -54,6 +54,7 @@ class Qasper(JSONTask):
             lm_judge_raw_file=lm_judge_raw_file, 
             lm_judge_mapping=lm_judge_mapping, 
             use_batch_api=use_batch_api,
+            eval_type=eval_type
         )
         if use_batch_api and res["results"]["all"] is None:
             print("Job Sumitted. Check back later!")
