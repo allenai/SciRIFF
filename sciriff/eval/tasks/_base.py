@@ -104,6 +104,10 @@ class EvalTask:
             ref = entry["target"]
             # Tulu models usually end with `</s>`; strip it off.
             pred = entry["filtered_resps"][0].strip("</s>")
+            # If reasoning model
+            if '</think>' in pred:
+                pred = pred[(pred.find('</think>') + 8):]
+
             raw_predictions.append({"prompt": prompt, "pred": pred, "ref": ref})
 
         return raw_predictions
