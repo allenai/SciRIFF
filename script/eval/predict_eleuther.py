@@ -132,6 +132,11 @@ def make_parser():
         type=int,
         default=2048,
     )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0,
+    )
 
     return parser
 
@@ -235,7 +240,7 @@ def make_task_command(task_name, result_dir, args, worker_gpu_ids=None):
         "--model_args",
         model_args,
         "--gen_kwargs",
-        f"max_gen_toks={args.max_gen_toks}",  # TODO(dwadden) Should make this modifiable.
+        f"max_gen_toks={args.max_gen_toks},temperature={args.temperature}", 
         "--tasks",
         task_name,
         "--batch_size",
