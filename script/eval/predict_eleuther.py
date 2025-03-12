@@ -85,6 +85,24 @@ def make_parser():
     parser.add_argument(
         "--apply_chat_template", action='store_true', help="Apply chat template. Default is True."
     )
+    parser.add_argument(
+        "--do_sample", action='store_true', help="Apply chat template. Default is True."
+    )
+    parser.add_argument(
+        "--max_gen_toks",
+        type=int,
+        default=2048,
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0,
+    )
+    parser.add_argument(
+        "--num_return_sequences",
+        type=int,
+        default=1,
+    )
     ####################
     # All arguments below this point only apply to Beaker batch jobs; ignore if not
     # AI2-internal.
@@ -127,16 +145,7 @@ def make_parser():
         type=str,
         default="normal",
     )
-    parser.add_argument(
-        "--max_gen_toks",
-        type=int,
-        default=2048,
-    )
-    parser.add_argument(
-        "--temperature",
-        type=float,
-        default=0,
-    )
+
 
     return parser
 
@@ -240,7 +249,7 @@ def make_task_command(task_name, result_dir, args, worker_gpu_ids=None):
         "--model_args",
         model_args,
         "--gen_kwargs",
-        f"max_gen_toks={args.max_gen_toks},temperature={args.temperature}", 
+        f"max_gen_toks={args.max_gen_toks},temperature={args.temperature},n={args.num_return_sequences},do_sample={"true" if args.do_sample else "false"}", 
         "--tasks",
         task_name,
         "--batch_size",
