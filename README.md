@@ -104,6 +104,19 @@ python script/eval/predict_eleuther.py \
     --limit 50
 ```
 
+To make predictions in parallel using multiprocessing with tasks distributed across worker processes and available GPUs evenly assigned to each worker, you can do:
+
+```bash
+python script/eval/predict_eleuther.py \
+  --model vllm \
+  --model_name Qwen/Qwen2.5-1.5B-Instruct \
+  --chat_template qwen \
+  --gpus 4 \
+  --workers 2 \
+  --result_base results/predictions \
+  # If you omit the --tasks flag, the script will run all tasks found in the evaluation directory. To run only specific tasks (for example, scifact_entailment), add --tasks scifact_entailment to the command.
+```
+
 ### Computing metrics
 
 Run `compute_science_metrics.py` to compute metrics based on the model predictions.
