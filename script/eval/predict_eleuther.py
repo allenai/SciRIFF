@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 import os
 import subprocess
+from multiprocessing import Process
 
 from sciriff.lib import paths
 
@@ -58,6 +59,18 @@ def make_parser():
         type=int,
         help="Number of GPUs to use. Use 1 for 7B and 4 for 70B",
         default=0,
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        help="Number of parallel worker processes",
+        default=1,
+    )
+    parser.add_argument(
+        "--gpu_ids",
+        type=str,
+        help="Comma-separated list of GPU IDs to use. Autodetect if not given.",
+        default=None,
     )
     parser.add_argument(
         "--result_base",
@@ -186,7 +199,7 @@ def get_beaker_settings(args):
     }
 
 
-def make_task_command(task_name, result_dir, args):
+def make_task_command(task_name, result_dir, args, worker_gpu_ids=None):
     "Create Beaker task command to run evaluation on each dataset."
     result_subdir = result_dir / task_name
     result_subdir.mkdir(exist_ok=True, parents=True)
@@ -202,10 +215,12 @@ def make_task_command(task_name, result_dir, args):
 
     # Construct model args.
     if args.model == "vllm":
+        # use worker_gpu_ids as tensor_parallel_size if provided
+        tp_size = len(worker_gpu_ids) if worker_gpu_ids is not None else args.gpus
         if args.tokenizer:
-            model_args = f"pretrained={args.model_name},tensor_parallel_size={args.gpus},trust_remote_code=true,dtype=float16,tokenizer={args.tokenizer}"
+            model_args = f"pretrained={args.model_name},tensor_parallel_size={tp_size},trust_remote_code=true,dtype=float16,tokenizer={args.tokenizer}"
         else:
-            model_args = f"pretrained={args.model_name},tensor_parallel_size={args.gpus},trust_remote_code=true,dtype=float16"
+            model_args = f"pretrained={args.model_name},tensor_parallel_size={tp_size},trust_remote_code=true,dtype=float16"
     else:
         model_args = f"model={args.model_name}"
 
@@ -241,6 +256,20 @@ def make_task_command(task_name, result_dir, args):
 
     return [str(x) for x in command]
 
+def worker_function(worker_id, task_list, result_dir, args, worker_gpu_ids):
+    """
+    Worker function that processes a list of tasks assigned to a worker.
+    Each task is distributed across a worker's assigned GPUs.
+    """
+    for task_name in task_list:
+        print(f"[Worker {worker_id}] Running task {task_name} with GPUs {worker_gpu_ids}")
+        cmd = make_task_command(task_name, result_dir, args, worker_gpu_ids=worker_gpu_ids)
+        if cmd is None:
+            continue
+        env = os.environ.copy()
+        env["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, worker_gpu_ids))
+        print(f"[Worker {worker_id}] Running command: {' '.join(cmd)} with CUDA_VISIBLE_DEVICES={env['CUDA_VISIBLE_DEVICES']}", flush=True)
+        subprocess.run(cmd, env=env)    
 
 def kickoff(args):
     if args.model_display_name is not None:
@@ -254,30 +283,23 @@ def kickoff(args):
     result_dir = Path(args.result_base) / model_stem
     result_dir.mkdir(exist_ok=True, parents=True)
 
-    # Loop over datasets and create a Beaker task for each.
-    beaker_settings = get_beaker_settings(args)
+    # all the beaker stuff
+    if args.beaker:
+        # Loop over datasets and create a Beaker task for each.
+        beaker_settings = get_beaker_settings(args)
 
-    experiment_tasks = []
-    for task_name in get_eval_tasks(args):
-        task_command = make_task_command(task_name, result_dir, args)
-        if task_command is None:
-            continue
-        this_task = TaskSpec(
-            name=f"eval-{model_stem}-{task_name}",
-            command=task_command,
-            **beaker_settings,
-        )
-        experiment_tasks.append(this_task)
-
-    # If working interactively, run the evals one at a time in the current session.
-    if not args.beaker:
-        for task_spec in experiment_tasks:
-            print(f"Running {task_spec.name}.")
-            print(f"Running {task_spec.command}.")
-            subprocess.run(task_spec.command)
-
-    # Otherwise kick off batch jobs.
-    else:
+        experiment_tasks = []
+        for task_name in get_eval_tasks(args):
+            task_command = make_task_command(task_name, result_dir, args)
+            if task_command is None:
+                continue
+            this_task = TaskSpec(
+                name=f"eval-{model_stem}-{task_name}",
+                command=task_command,
+                **beaker_settings,
+            )
+            experiment_tasks.append(this_task)
+        
         spec = ExperimentSpec(
             description=f"Science adapt Eleuther prediction for {model_stem}.",
             tasks=experiment_tasks,
@@ -292,6 +314,52 @@ def kickoff(args):
 
         beaker_client.experiment.create(spec=spec)
         print(f"Kicked off evaluation for {model_stem}.")
+
+    # If working interactively, distribute tasks across workers in a round-robin fashion.
+    else:
+        tasks = get_eval_tasks(args)
+        
+        # Give each worker a list of tasks to process.
+        worker_tasks = {i: [] for i in range(args.workers)}
+        print(f"Running {len(tasks)} tasks across {args.workers} workers.", flush=True)
+        
+        for i, task in enumerate(tasks):
+            worker_id = i % args.workers # Round-robin
+            worker_tasks[worker_id].append(task)
+        
+        # Which GPUs are available
+        if args.gpu_ids is not None:
+            available_gpu_ids = [int(x.strip()) for x in args.gpu_ids.split(",")]
+        else:
+            try:
+                import torch
+                available_gpu_ids = list(range(torch.cuda.device_count()))
+            except ImportError:
+                available_gpu_ids = [0]
+        print(f"Available GPUs: {available_gpu_ids}", flush=True)
+        total_gpus = len(available_gpu_ids)
+        if total_gpus < args.workers:
+            raise ValueError(f"Requested {args.workers} workers but only {total_gpus} GPUs available.")
+        
+        # Assign GPUs to workers
+        worker_gpu_map = {}
+        per_worker = total_gpus // args.workers
+        remainder = total_gpus % args.workers
+        gpu_id = 0
+        for i in range(args.workers):
+            count = per_worker + (1 if i < remainder else 0)
+            worker_gpu_map[i] = available_gpu_ids[gpu_id:gpu_id+count]
+            gpu_id += count
+        print(f"Worker GPU assignments: {worker_gpu_map}", flush=True)
+        
+        # Send off the jobs
+        processes = []
+        for i in range(args.workers):
+            p = Process(target=worker_function, args=(i, worker_tasks[i], result_dir, args, worker_gpu_map[i]))
+            p.start()
+            processes.append(p)
+        for p in processes:
+            p.join()
 
 
 def main():
