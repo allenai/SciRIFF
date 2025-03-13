@@ -230,11 +230,14 @@ def make_task_command(task_name, result_dir, args, worker_gpu_ids=None):
     # Construct model args.
     if args.model == "vllm":
         # use worker_gpu_ids as tensor_parallel_size if provided
-        tp_size = len(worker_gpu_ids) if worker_gpu_ids is not None else args.gpus
+        # tp_size = len(worker_gpu_ids) if worker_gpu_ids is not None else args.gpus
+        tp_size = len(worker_gpu_ids) if args.workers > 1 else 1
         if args.tokenizer:
-            model_args = f"pretrained={args.model_name},tensor_parallel_size={tp_size},trust_remote_code=true,dtype=float16,tokenizer={args.tokenizer}"
+            # model_args = f"pretrained={args.model_name},tensor_parallel_size={tp_size},trust_remote_code=true,dtype=float16,tokenizer={args.tokenizer}"
+            model_args = f"pretrained={args.model_name},tensor_parallel_size=1,trust_remote_code=true,dtype=float16,tokenizer={args.tokenizer},data_parallel_size={args.workers}"
         else:
-            model_args = f"pretrained={args.model_name},tensor_parallel_size={tp_size},trust_remote_code=true,dtype=float16"
+            # model_args = f"pretrained={args.model_name},tensor_parallel_size={tp_size},trust_remote_code=true,dtype=float16,data_parallel_size={args.workers}"
+            model_args = f"pretrained={args.model_name},tensor_parallel_size=1,trust_remote_code=true,dtype=float16,data_parallel_size={args.workers}"
     else:
         model_args = f"model={args.model_name}"
 
@@ -249,7 +252,7 @@ def make_task_command(task_name, result_dir, args, worker_gpu_ids=None):
         "--model_args",
         model_args,
         "--gen_kwargs",
-        f"max_gen_toks={args.max_gen_toks},temperature={args.temperature},n={args.num_return_sequences},do_sample={"true" if args.do_sample else "false"}", 
+        f"max_gen_toks={args.max_gen_toks},temperature={args.temperature},n={args.num_return_sequences},do_sample={args.do_sample}",
         "--tasks",
         task_name,
         "--batch_size",
@@ -360,20 +363,25 @@ def kickoff(args):
         per_worker = total_gpus // args.workers
         remainder = total_gpus % args.workers
         gpu_id = 0
-        for i in range(args.workers):
+        # for i in range(args.workers):
+        for i in range(1):
             count = per_worker + (1 if i < remainder else 0)
-            worker_gpu_map[i] = available_gpu_ids[gpu_id:gpu_id+count]
+            # worker_gpu_map[i] = available_gpu_ids[gpu_id:gpu_id+count]
+            worker_gpu_map[i] = available_gpu_ids
             gpu_id += count
         print(f"Worker GPU assignments: {worker_gpu_map}", flush=True)
         
         # Send off the jobs
         processes = []
-        for i in range(args.workers):
-            p = Process(target=worker_function, args=(i, worker_tasks[i], result_dir, args, worker_gpu_map[i]))
-            p.start()
-            processes.append(p)
-        for p in processes:
-            p.join()
+        # if args.workers > 1:
+        #     for i in range(args.workers):
+        #         p = Process(target=worker_function, args=(i, worker_tasks[i], result_dir, args, worker_gpu_map[i]))
+        #         p.start()
+        #         processes.append(p)
+        #     for p in processes:
+        #         p.join()
+        # else:
+        worker_function(0, worker_tasks[0], result_dir, args, worker_gpu_map[0])
 
 
 def main():
