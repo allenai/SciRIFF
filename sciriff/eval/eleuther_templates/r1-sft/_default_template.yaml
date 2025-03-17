@@ -3,7 +3,7 @@
 dataset_path: allenai/SciRIFF
 dataset_name: "4096"
 validation_split: validation
-doc_to_text: input
+doc_to_text: "<｜User｜>{{input}}<｜Assistant｜>\n\n"
 doc_to_target: output
 target_delimiter: "\n"
 fewshot_delimiter: "\n\n--------------------\n\n"

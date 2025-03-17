@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: mup_single_document_summarization
+process_docs: !function utils.filter_mup_single_document_summarization

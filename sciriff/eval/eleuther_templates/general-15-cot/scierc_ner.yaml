@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: scierc_ner
+process_docs: !function utils.filter_scierc_ner

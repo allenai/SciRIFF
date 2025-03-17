@@ -1,0 +1,20 @@
+# group:
+#   - science_adapt
+dataset_path: allenai/SciRIFF
+dataset_name: "4096"
+validation_split: validation
+doc_to_text: "{{input}} Let's reason step-by-step. Put final answer in the format of \"ANSWER: X\" where \"X\" is the final answer text. "
+doc_to_target: output
+target_delimiter: "\n"
+fewshot_delimiter: "\n\n--------------------\n\n"
+# repeats: 15
+metric_list:
+  - metric: bleu
+    aggregation: mean
+    higher_is_better: true
+    hf_evaluate: true
+filter_list:
+  - name: "score-first" # pick only the first response, and report metrics on that
+    filter:
+      - function: "take_first_k"
+        k: 15

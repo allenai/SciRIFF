@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: discomat_te
+process_docs: !function utils.filter_discomat_te
