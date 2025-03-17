@@ -381,7 +381,8 @@ def kickoff(args):
         #     for p in processes:
         #         p.join()
         # else:
-        worker_function(0, worker_tasks[0], result_dir, args, worker_gpu_map[0])
+        # worker_function(0, worker_tasks[0], result_dir, args, worker_gpu_map[0])
+        worker_function(0, tasks, result_dir, args, worker_gpu_map[0])
 
 
 def main():
